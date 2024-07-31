@@ -31,16 +31,21 @@ async def s_box_basic_test(dut):
     dut.reset.value = 0
     await RisingEdge(dut.clk)
     # input byte
-    dut.input_byte.value = 5
+    dut.input_byte.value = 84
     await RisingEdge(dut.clk)
     dut.input_en.value = 1
     await RisingEdge(dut.clk)
     dut.input_en.value = 0
     
     await RisingEdge(dut.output_en)
-    output = dut.output_byte.value
+    await RisingEdge(dut.clk)
+    await RisingEdge(dut.clk)
+    await RisingEdge(dut.clk)
+    await RisingEdge(dut.clk)
+    await RisingEdge(dut.clk)
+    #output = dut.output_byte.value
 
-    print(f"Input: 5, output: {str(hex(output))}, expected 0x6B")
+    #print(f"Input: 5, output: {str(hex(output))}, expected 0x6B")
 
     # assert dut.X.value == s_box_model(
     #     A, B
