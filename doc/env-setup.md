@@ -28,6 +28,9 @@ This setup guide is intended for Debian on WSL.
     - Open .bashrc file with nano: `nano ~/.bashrc`
     - Add license file for Questa: `export LM_LICENSE_FILE="/path_to_license/LICENSE-FILE.  dat:$LM_LICENSE_FILE`
     - Add vsim to PATH: `export PATH=$PATH:/path_to_questa/questa_fse/bin`
+    - (WSL Only) WSL does not have a static eth0 MAC. Therefore you need to set a virtual MAC:
+      - `sudo ip link add vmnic0 type dummy`
+      - `sudo ip link set vmnic0 addr 00:15:5d:35:63:f0` (replace MAC with whatever you used for the Questa license)
     - (Optional) Automatically activate the RTL virtual environment: `source  path_to_your_environment/RTL1/bin/activate`
     - (Optional) Set default start directory: `cd your_directory`
     - Close .bashrc
