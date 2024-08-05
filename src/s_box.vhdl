@@ -3,18 +3,17 @@ use ieee.std_logic_1164.all;
 use IEEE.numeric_std_unsigned.all;
 
 entity s_box is
-port (
+port 
+(
+    -- Common
     clk         : in std_logic;
     reset       : in std_logic;
-
-    -- INPUT
+    -- Input
     input_byte  : in std_logic_vector(7 downto 0);
-    byte_num    : in std_logic_vector(2 downto 0); -- for affine transform
     input_en    : in std_logic;
-    -- OUTPUT
+    -- Output
 	output_byte : out std_logic_vector(7 downto 0);
-    output_en   : out std_logic;
-    err         : out std_logic
+    output_en   : out std_logic
 );
 end s_box;
 
@@ -53,9 +52,7 @@ begin
                 null;
             else
                 if input_en = '1' then
-                    inv <= S_BOX(to_integer(input_byte(7 downto 4)))( to_integer(127 - input_byte(3 downto 0)*8) downto to_integer(120 - input_byte(3 downto 0)*8)  ); --
-                    report integer'image(to_integer(input_byte(7 downto 4)));
-                    
+                    inv <= S_BOX(to_integer(input_byte(7 downto 4)))( to_integer(127 - input_byte(3 downto 0)*8) downto to_integer(120 - input_byte(3 downto 0)*8)  );
                     data_ready <= '1'; -- Pulsed
                 end if;
             end if;
@@ -65,6 +62,7 @@ begin
     sbox_proc : process(clk)
     begin
         if rising_edge(clk) then
+            output_en <= '0';
             if reset = '1' then
                 null;
             elsif data_ready = '1' then
