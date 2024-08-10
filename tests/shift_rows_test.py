@@ -86,13 +86,14 @@ def test_shift_rows_runner():
     hdl_toplevel_lang = os.getenv("HDL_TOPLEVEL_LANG", "vhd")
     sim = os.getenv("SIM", "questa")
 
-    sources = [proj_path / "src" / f"{src}.vhdl"]
+    sources = [proj_path / "src" / "aes_pkg.vhdl", proj_path / "src" / f"{src}.vhdl"]
 
     build_test_args = []
     if hdl_toplevel_lang == "vhdl" and sim == "xcelium":
         build_test_args = ["-v93"]
 
     runner = get_runner(sim)
+    print(sources)
     runner.build(
         sources=sources,
         hdl_toplevel=f"{src}",

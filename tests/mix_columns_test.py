@@ -52,7 +52,8 @@ def test_mix_columns_runner():
     hdl_toplevel_lang = os.getenv("HDL_TOPLEVEL_LANG", "vhd")
     sim = os.getenv("SIM", "questa")
 
-    sources = [proj_path / "src" / f"{src}.vhdl"]
+    sources = [proj_path / "src" / "aes_pkg.vhdl", proj_path / "src" / f"{src}.vhdl"]
+
 
     build_test_args = []
     if hdl_toplevel_lang == "vhdl" and sim == "xcelium":

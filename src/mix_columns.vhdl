@@ -1,5 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
+library work;
+use work.aes_pkg.all;
 
 entity mix_columns is
 port 
@@ -17,21 +19,6 @@ port
 end mix_columns;
 
 architecture rtl of mix_columns is
-    -- Function to multiply a byte by 2 in Galois Field 2^8
-    function mul_g2(byte : std_logic_vector(7 downto 0)) return std_logic_vector is
-    begin
-        if byte(7) = '1' then
-            return (byte(6 downto 0) & '0') xor x"1B";
-        else
-            return byte(6 downto 0) & '0'; -- shift left
-        end if;
-    end mul_g2;
-
-    -- Function to multiply a byte by 3 in Galois Field 2^8
-    function mul_g3(byte : std_logic_vector(7 downto 0)) return std_logic_vector is
-    begin
-        return mul_g2(byte) xor byte; 
-    end mul_g3;
 
     -- Function to mix a single column of 4 bytes. Returns a concatonated 32 bit std_logic_vector
     function mix_col(s_0, s_1, s_2, s_3 : std_logic_vector(7 downto 0)) return std_logic_vector is
