@@ -1,6 +1,8 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use IEEE.numeric_std_unsigned.all;
+library work;
+use work.aes_pkg.all;
 
 entity shift_rows is
 generic

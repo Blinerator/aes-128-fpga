@@ -31,9 +31,9 @@ async def s_box_basic_test(dut):
     dut.reset.value = 0
     await RisingEdge(dut.clk)
     # input byte
-    dut.input_byte.value = 84
+    dut.input_bus.value = 0x538042F0
     await RisingEdge(dut.clk)
-    dut.input_en.value = 1
+    dut.input_en.value  = 1
     await RisingEdge(dut.clk)
     dut.input_en.value = 0
     
@@ -61,7 +61,7 @@ def test_s_box_runner():
     hdl_toplevel_lang = os.getenv("HDL_TOPLEVEL_LANG", "vhd")
     sim = os.getenv("SIM", "questa")
 
-    sources = [proj_path / "src" / f"{src}.vhdl"]
+    sources = [proj_path / "src" / "aes_pkg.vhdl", proj_path / "src" / f"{src}.vhdl"]
 
     build_test_args = []
     if hdl_toplevel_lang == "vhdl" and sim == "xcelium":
