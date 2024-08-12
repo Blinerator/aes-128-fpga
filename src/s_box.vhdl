@@ -20,15 +20,12 @@ port
     input_bus   : in std_logic_vector(BUS_WIDTH*8-1 downto 0);
     input_en    : in std_logic;
     -- Output
-	output_bus : out std_logic_vector(BUS_WIDTH*8-1 downto 0);
+	output_bus  : out std_logic_vector(BUS_WIDTH*8-1 downto 0);
     output_en   : out std_logic
 );
 end s_box;
 
 architecture rtl of s_box is
-
-
-
     signal inv : std_logic_vector(BUS_WIDTH*8-1 downto 0);
     signal data_ready : std_logic;
     signal delay_sr   : std_logic_vector(1 downto 0);
@@ -50,8 +47,6 @@ begin
         end if;
     end if;
 end process;
-                
-
 
 gen_sbox : for i in 1 to BUS_WIDTH generate
     input_proc : process(clk)
@@ -62,7 +57,7 @@ gen_sbox : for i in 1 to BUS_WIDTH generate
             else
                 if input_en = '1' then
                     -- Inversion for each byte in the input bus
-                    inv(i*8-1 downto i*8-8) <= s_box_lookup(input_bus(i*8-1 downto i*8-8));
+                    inv(i*8-1 downto i*8-8) <= s_box_byte(input_bus(i*8-1 downto i*8-8));
                 end if;
             end if;
         end if;
