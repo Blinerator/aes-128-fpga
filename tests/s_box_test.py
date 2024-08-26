@@ -73,6 +73,7 @@ def test_s_box_runner():
         hdl_toplevel=f"{src}",
         always=True,
         build_args=build_test_args,
+        parameters = {"BUS_WIDTH": 16},
     )
     runner.test(
         hdl_toplevel=f"{src}", 

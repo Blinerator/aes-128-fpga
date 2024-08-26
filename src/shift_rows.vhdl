@@ -66,6 +66,7 @@ begin
             else
                 if data_ready = '1' then
                     -- perform shift rows, register the output
+                    -- TODO: fix this. it's currently shifting the columns instead of the rows.
                     output_array(127 downto 96)  <= byte_array(127 downto 96); -- no shift
                     -- output_array(95  downto 64)  <= byte_array(95  downto 64) rol 1;
                     -- output_array(63  downto 32)  <= byte_array(63  downto 32) rol 2;

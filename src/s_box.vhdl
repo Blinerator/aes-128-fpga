@@ -9,7 +9,7 @@ generic
 (
     -- Width of in/out bus. Each byte on the input bus is replaced by its inverse on the output bus.
     -- Defaults to 1 byte/cc. Extra 4 bytes available for key expansion.
-    BUS_WIDTH : natural range 1 to (16 + 4) := 4
+    BUS_WIDTH : natural range 1 to 16 := 4
 );
 port 
 (
@@ -64,25 +64,15 @@ gen_sbox : for i in 1 to BUS_WIDTH generate
     end process;
 end generate gen_sbox;
 
-gen_affine : for i in 0 to BUS_WIDTH-1 generate
-    sbox_proc : process(clk)
-    begin
-        if rising_edge(clk) then
-            if reset = '1' then
-                null;
-            elsif data_ready = '1' then
-                -- Affine for each byte in the input bus
-                output_bus(i*8 + 0) <= inv(i*8 + 0) xor inv(i*8 + 4) xor inv(i*8 + 5) xor inv(i*8 + 6) xor inv(i*8 + 7) xor '1';
-                output_bus(i*8 + 1) <= inv(i*8 + 0) xor inv(i*8 + 1) xor inv(i*8 + 5) xor inv(i*8 + 6) xor inv(i*8 + 7) xor '1';
-                output_bus(i*8 + 2) <= inv(i*8 + 0) xor inv(i*8 + 1) xor inv(i*8 + 2) xor inv(i*8 + 6) xor inv(i*8 + 7) xor '0';
-                output_bus(i*8 + 3) <= inv(i*8 + 0) xor inv(i*8 + 1) xor inv(i*8 + 2) xor inv(i*8 + 3) xor inv(i*8 + 7) xor '0';
-                output_bus(i*8 + 4) <= inv(i*8 + 0) xor inv(i*8 + 1) xor inv(i*8 + 2) xor inv(i*8 + 3) xor inv(i*8 + 4) xor '0';
-                output_bus(i*8 + 5) <= inv(i*8 + 1) xor inv(i*8 + 2) xor inv(i*8 + 3) xor inv(i*8 + 4) xor inv(i*8 + 5) xor '1';
-                output_bus(i*8 + 6) <= inv(i*8 + 2) xor inv(i*8 + 3) xor inv(i*8 + 4) xor inv(i*8 + 5) xor inv(i*8 + 6) xor '1';
-                output_bus(i*8 + 7) <= inv(i*8 + 3) xor inv(i*8 + 4) xor inv(i*8 + 5) xor inv(i*8 + 6) xor inv(i*8 + 7) xor '0';
-            end if;
+sbox_proc : process(clk)
+begin
+    if rising_edge(clk) then
+        if reset = '1' then
+            null;
+        elsif data_ready = '1' then
+            output_bus <= inv;
         end if;
-    end process;
-end generate gen_affine;
+    end if;
+end process;
 
 end architecture rtl;

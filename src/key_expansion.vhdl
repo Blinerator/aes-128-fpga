@@ -36,6 +36,7 @@ begin
         variable col_num : integer range 0 to 3;
     begin
         if rising_edge(clk) then
+            output_en <= '0';
             if reset = '1' then
                 expansion_in_prog <= '0';
                 index <= 4;
@@ -50,6 +51,8 @@ begin
                         row_num := row_num + 1; -- assigned immediately
                         -- the leftmost word is derived from:
                         e_key_i(row_num)(127 downto 96) <= e_key_i(row_num-1)(127 downto 96) xor s_box_word(rot_word(e_key_i(row_num-1)(31 downto 0))) xor R_CON(row_num-1);                
+                        -- e_key is ready 1 cc before this, but this is the simplest (e.g. most resource efficient)
+                        output_en <= '1'; -- Pulsed
                     else
                         -- the other words are derived from:
                         col_num := index-NUM_COLS*row_num;
@@ -59,12 +62,10 @@ begin
 
                     if index = 43 then
                         -- last key
-                        output_en <= '1';
                         expansion_in_prog <= '0';
                         -- Reset the internal variables so we're ready for a new key next cc
                         index <= 4;
                         row_num := 0;
-                        e_key <= e_key_i; -- register the output
                     else
                         -- iterate counter
                         index <= index + 1;
@@ -73,6 +74,8 @@ begin
             end if;
         end if;
     end process;
+
+    e_key <= e_key_i;
 
 end architecture rtl;
 
