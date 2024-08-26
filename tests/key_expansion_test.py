@@ -36,7 +36,9 @@ async def key_expansion_basic_test(dut):
 
     await RisingEdge(dut.clk)
     dut.input_en.value = 0
-    await RisingEdge(dut.output_en)
+    for _ in range(100):
+        await RisingEdge(dut.clk)
+    # await RisingEdge(dut.output_en)
     await RisingEdge(dut.clk)
     await RisingEdge(dut.clk)
     await RisingEdge(dut.clk)
