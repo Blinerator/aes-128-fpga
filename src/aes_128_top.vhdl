@@ -100,17 +100,19 @@ begin
             end if; -- reset
         end if; -- clk
     end process;
-
+    
     -- -- Process to add round key
     add_round_key : process(clk)
-        variable rnd_num : integer range 1 to 11;
+        variable rnd_num : integer range 0 to 10;
+        variable mix_col_out_rdy : std_logic;
     begin
         if rising_edge(clk) then
             s_box_bus_in_valid <= '0'; -- Clear pulses
             output_valid <= '0';
             if reset = '1' then
                 rnd_key_state <= idle;
-                rnd_num := 1;
+                rnd_num := 0;
+                mix_col_out_rdy := '0';
             else
                 if input_block_ready = '1' then
                     -- This initiates the encryption round
@@ -126,22 +128,18 @@ begin
                             s_box_bus_in <= plaintext xor e_key(0);
                             s_box_bus_in_valid <= '1'; -- Pulsed
                             rnd_key_state <= enc_in_prog;
-                            rnd_num := 1;
+                            rnd_num := 0;
                         end if;
                     ---------------------------
                     when enc_in_prog =>
                         -- In this case xor with the expanded key
-                        if round_key_valid = '1' then
-                            key_ready <= '1';
-                        end if;
                         if mix_columns_bus_out_valid = '1' then
-                            s_box_bus_in <= plaintext xor e_key(rnd_num - 1);
-                            s_box_bus_in_valid <= '1'; -- Pulsed
-                            if rnd_num < 10 then
-                                rnd_num := rnd_num + 1;
-                            else
+                            if rnd_num = 8 then
                                 rnd_key_state <= end_enc;
                             end if;
+                            rnd_num := rnd_num + 1;
+                            s_box_bus_in <= mix_columns_bus_out xor e_key(rnd_num);
+                            s_box_bus_in_valid <= '1'; -- Pulsed
                         end if;
                     --------------------------
                     when end_enc =>
@@ -226,10 +224,3 @@ begin
     );
 
 end architecture rtl;
-
-
-
-
-
-
-

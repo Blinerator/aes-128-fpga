@@ -32,10 +32,10 @@ architecture rtl of mix_columns is
     -- Function to take the cols from mix_cols and return a single output state
     function concat_cols(col_0, col_1, col_2, col_3 : std_logic_vector(31 downto 0)) return std_logic_vector is
     begin
-        return col_0(31 downto 24) & col_1(31 downto 24) & col_2(31 downto 24) & col_3(31 downto 24) &
-               col_0(23 downto 16) & col_1(23 downto 16) & col_2(23 downto 16) & col_3(23 downto 16) &
-               col_0(15 downto 8 ) & col_1(15 downto 8 ) & col_2(15 downto 8 ) & col_3(15 downto 8 ) &
-               col_0(7  downto 0 ) & col_1(7  downto 0 ) & col_2(7  downto 0 ) & col_3(7  downto 0 );
+        return col_0(31 downto 24) & col_0(23 downto 16) & col_0(15 downto 8 ) & col_0(7  downto 0 ) &
+               col_1(31 downto 24) & col_1(23 downto 16) & col_1(15 downto 8 ) & col_1(7  downto 0 ) &
+               col_2(31 downto 24) & col_2(23 downto 16) & col_2(15 downto 8 ) & col_2(7  downto 0 ) &
+               col_3(31 downto 24) & col_3(23 downto 16) & col_3(15 downto 8 ) & col_3(7  downto 0 );
     end concat_cols;
 
     signal data_ready   : std_logic;
@@ -67,10 +67,10 @@ begin
                 null;
             else
                 if data_ready = '1' then
-                    output_bytes <= concat_cols(mix_col(byte_array(127 downto 120), byte_array(95 downto 88), byte_array(63 downto 56), byte_array(31 downto 24)),
-                                                mix_col(byte_array(119 downto 112), byte_array(87 downto 80), byte_array(55 downto 48), byte_array(23 downto 16)),
-                                                mix_col(byte_array(111 downto 104), byte_array(79 downto 72), byte_array(47 downto 40), byte_array(15 downto 8 )),
-                                                mix_col(byte_array(103 downto 96) , byte_array(71 downto 64), byte_array(39 downto 32), byte_array(7 downto  0 )));
+                    output_bytes <= concat_cols(mix_col(byte_array(127 downto 120), byte_array(119 downto 112), byte_array(111 downto 104), byte_array(103 downto 96)),
+                                                mix_col(byte_array(95 downto 88)  , byte_array(87 downto 80)  , byte_array(79 downto 72)  , byte_array(71 downto 64 )),
+                                                mix_col(byte_array(63 downto 56)  , byte_array(55 downto 48)  , byte_array(47 downto 40)  , byte_array(39 downto 32 )),
+                                                mix_col(byte_array(31 downto 24)  , byte_array(23 downto 16)  , byte_array(15 downto 8)   , byte_array(7 downto  0  )));
                     output_en <= '1'; -- Pulsed
                 end if;
             end if;

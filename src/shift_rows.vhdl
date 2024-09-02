@@ -67,13 +67,10 @@ begin
                 if data_ready = '1' then
                     -- perform shift rows, register the output
                     -- TODO: fix this. it's currently shifting the columns instead of the rows.
-                    output_array(127 downto 96)  <= byte_array(127 downto 96); -- no shift
-                    -- output_array(95  downto 64)  <= byte_array(95  downto 64) rol 1;
-                    -- output_array(63  downto 32)  <= byte_array(63  downto 32) rol 2;
-                    -- output_array(31  downto  0)  <= byte_array(95  downto 64) rol 3;
-                    output_array(95  downto 64)  <= byte_array(87 downto 80) & byte_array(79 downto 72) & byte_array(71 downto 64) & byte_array(95 downto 88); -- shift 1
-                    output_array(63  downto 32)  <= byte_array(47 downto 40) & byte_array(39 downto 32) & byte_array(63 downto 56) & byte_array(55 downto 48); -- shift 2
-                    output_array(31  downto  0)  <= byte_array(7 downto 0) & byte_array(31 downto 24) & byte_array(23 downto 16) & byte_array(15 downto 8);    -- shift 3
+                    output_array(127 downto 96) <= byte_array(127 downto 120) & byte_array(87 downto 80)   & byte_array(47 downto 40)   & byte_array(7  downto 0);
+                    output_array(95  downto 64) <= byte_array(95  downto  88) & byte_array(55 downto 48)   & byte_array(15 downto 8 )   & byte_array(103 downto 96);
+                    output_array(63  downto 32) <= byte_array(63  downto  56) & byte_array(23 downto 16)   & byte_array(111 downto 104) & byte_array(71 downto 64);
+                    output_array(31  downto 0 ) <= byte_array(31 downto   24) & byte_array(119 downto 112) & byte_array(79 downto 72)   & byte_array(39 downto 32);
                     output_ready <= '1'; -- Pulsed
                 end if;
             end if;

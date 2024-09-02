@@ -34,15 +34,15 @@ begin
 ctrl_proc : process(clk)
 begin
     if rising_edge(clk) then
+        data_ready  <= '0'; -- reset pulse
         if reset = '1' then
             delay_sr <= (others => '0');
         else
             if input_en = '1' then
-                data_ready  <= '1';
+                data_ready  <= '1'; -- pulsed
                 delay_sr(0) <= '1';
             else
                 delay_sr <= delay_sr(delay_sr'high - 1 downto 0) & '0'; -- shift left
-                output_en <= delay_sr(delay_sr'high - 1); -- S-box is deterministic. It will always take 2 ccs to finish.
             end if;
         end if;
     end if;
@@ -67,10 +67,12 @@ end generate gen_sbox;
 sbox_proc : process(clk)
 begin
     if rising_edge(clk) then
+        output_en <= '0'; -- Reset pulses
         if reset = '1' then
             null;
         elsif data_ready = '1' then
             output_bus <= inv;
+            output_en <= '1'; -- Pulsed
         end if;
     end if;
 end process;
