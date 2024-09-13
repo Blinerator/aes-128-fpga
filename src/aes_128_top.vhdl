@@ -1,6 +1,5 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use IEEE.numeric_std_unsigned.all;
 library work;
 use work.aes_pkg.all;
 
@@ -15,8 +14,6 @@ port
     -- Common
     clk               : in std_logic;
     reset             : in std_logic;
-    -- TODO: a handshake so we don't overwrite an in-progress encryption, also buffer all the inputs so we don't have to
-    -- use them right away
     -- Input
     input_bus         : in std_logic_vector(IBW*8-1 downto 0);
     input_key         : in std_logic_vector(127 downto 0);
@@ -33,7 +30,7 @@ end aes_128_top;
 
 architecture rtl of aes_128_top is
     constant IBW_ROUNDS              : natural := 16/IBW - 1; -- # of ccs required to read in the plaintext
-    constant OBW_DELAY               : natural  := 16/OBW - 1; -- # of ccs required to output cipherblock
+    constant OBW_DELAY               : natural := 16/OBW - 1; -- # of ccs required to output cipherblock
     signal round_key_valid           : std_logic;
     signal plaintext                 : std_logic_vector(127 downto 0);
     signal input_index               : natural range 0 to 16; 
@@ -59,10 +56,6 @@ architecture rtl of aes_128_top is
     type key_proc_state_type is (idle, start_round, enc_in_prog, end_enc);
     signal rnd_key_state             : key_proc_state_type;
 begin
-    -- TODO: buffer input, regardless of anything
-    --       xor with thing, multiplex dep. on new round strt
-    --       add round key, base on rnd key exp siggy
-    --       don't worry about speed
     -- Process for buffering the input plaintext
     cntrl_proc : process(clk)
     variable t_index : integer;
@@ -192,20 +185,16 @@ begin
     );
 
     shift_rows_inst : entity work.shift_rows(rtl)
-    generic map
-    (
-        NUM_INPUT_BYTES => 16
-    )
     port map
     (
         -- Common
         clk          => clk,                      -- in std_logic;
         reset        => reset,                    -- in std_logic;
         -- Input
-        input_bytes  => s_box_bus_out,            -- in std_logic_vector(NUM_INPUT_BYTES*8 - 1 downto 0);
-        input_en     => s_box_bus_out_valid,       -- in std_logic;
+        input_bus    => s_box_bus_out,            -- in std_logic_vector(NUM_INPUT_BYTES*8 - 1 downto 0);
+        input_en     => s_box_bus_out_valid,      -- in std_logic;
         -- Output
-        output_bytes => shift_rows_bus_out,       -- out std_logic_vector(127 downto 0); -- output is always 16*16 bytes
+        output_bus   => shift_rows_bus_out,       -- out std_logic_vector(127 downto 0); -- output is always 16*16 bytes
         output_en    => shift_rows_bus_out_valid  --out std_logic
     );
 
@@ -216,11 +205,11 @@ begin
         clk          => clk,                      -- in std_logic;
         reset        => reset,                    -- in std_logic;
         -- Input
-        input_bytes  => shift_rows_bus_out,       -- in std_logic_vector(127 downto 0);
+        input_bus    => shift_rows_bus_out,       -- in std_logic_vector(127 downto 0);
         input_en     => shift_rows_bus_out_valid, -- in std_logic;
         -- Output
-        output_bytes => mix_columns_bus_out,      -- out std_logic_vector(127 downto 0); -- output is always 4*4 bytes
-        output_en    => mix_columns_bus_out_valid     -- out std_logic
+        output_bus   => mix_columns_bus_out,      -- out std_logic_vector(127 downto 0); -- output is always 4*4 bytes
+        output_en    => mix_columns_bus_out_valid -- out std_logic
     );
 
 end architecture rtl;

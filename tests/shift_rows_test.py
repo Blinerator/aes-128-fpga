@@ -31,38 +31,38 @@ async def shift_rows_basic_test(dut):
     dut.reset.value = 0
     await RisingEdge(dut.clk)
     # input byte
-    dut.input_bytes.value = 0x01234567
+    dut.input_bus.value = 0x01234567
     dut.input_en.value = 1
     await RisingEdge(dut.clk)
-    dut.input_bytes.value = 0x89ABCDEF
+    dut.input_bus.value = 0x89ABCDEF
     await RisingEdge(dut.clk)
-    dut.input_bytes.value = 0xDCBA9876
+    dut.input_bus.value = 0xDCBA9876
     await RisingEdge(dut.clk)
-    dut.input_bytes.value = 0x54321234
+    dut.input_bus.value = 0x54321234
     await RisingEdge(dut.clk)
-    dut.input_bytes.value = 0x89124124
+    dut.input_bus.value = 0x89124124
     await RisingEdge(dut.clk)
-    dut.input_bytes.value = 0xAFD21345
+    dut.input_bus.value = 0xAFD21345
     await RisingEdge(dut.clk)
-    dut.input_bytes.value = 0xADF12489
+    dut.input_bus.value = 0xADF12489
     await RisingEdge(dut.clk)
-    dut.input_bytes.value = 0xEF
+    dut.input_bus.value = 0xEF
     await RisingEdge(dut.clk)
-    dut.input_bytes.value = 0x01
+    dut.input_bus.value = 0x01
     await RisingEdge(dut.clk)
-    dut.input_bytes.value = 0x23
+    dut.input_bus.value = 0x23
     await RisingEdge(dut.clk)
-    dut.input_bytes.value = 0x45
+    dut.input_bus.value = 0x45
     await RisingEdge(dut.clk)
-    dut.input_bytes.value = 0x67
+    dut.input_bus.value = 0x67
     await RisingEdge(dut.clk)
-    dut.input_bytes.value = 0x89
+    dut.input_bus.value = 0x89
     await RisingEdge(dut.clk)
-    dut.input_bytes.value = 0xAB
+    dut.input_bus.value = 0xAB
     await RisingEdge(dut.clk)
-    dut.input_bytes.value = 0xCD
+    dut.input_bus.value = 0xCD
     await RisingEdge(dut.clk)
-    dut.input_bytes.value = 0xEF
+    dut.input_bus.value = 0xEF
     await RisingEdge(dut.clk)
     await RisingEdge(dut.clk)
     await RisingEdge(dut.clk)

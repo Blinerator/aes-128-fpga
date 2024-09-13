@@ -14,6 +14,7 @@ package aes_pkg is
     type s_box_type is array (0 to 15) of std_logic_vector(127 downto 0);
     type exp_key_type is array (0 to 10) of std_logic_vector(127 downto 0); -- 11 subkeys for AES-128
 
+    -- TODO: Put this in BRAM, look into T-Box (combining S-Box with mixcols)
     constant S_BOX : s_box_type :=(
         (x"637C777BF26B6FC53001672BFED7AB76"),
         (x"CA82C97DFA5947F0ADD4A2AF9CA472C0"),
@@ -32,33 +33,37 @@ package aes_pkg is
         (x"E1F8981169D98E949B1E87E9CE5528DF"),
         (x"8CA1890DBFE6426841992D0FB054BB16")
     );
-    -- Function Declaration
-
+    
+    -- Function Declarations:
+    -- Function to obtain multiplicative inverse in G(2^8) via S-Box
     function s_box_byte(byte : std_logic_vector(7 downto 0)) return std_logic_vector;
+    -- Same as prev. but for word
     function s_box_word(word : std_logic_vector(31 downto 0)) return std_logic_vector;
+    -- Function to multiply a byte by 2 in Galois Field 2^8
     function mul_g2(byte : std_logic_vector(7 downto 0)) return std_logic_vector;
+    -- Function to multiply a byte by 3 in Galois Field 2^8
     function mul_g3(byte : std_logic_vector(7 downto 0)) return std_logic_vector;
+    -- Function to rotate four bytes (a word) left by one byte (a.k.a. 8x rotate left)
     function rot_word(word : std_logic_vector(31 downto 0)) return std_logic_vector;
+    -- Checks index against a LUT
     function is_leftmost(index : integer) return std_logic;
+
 end package aes_pkg;
 
 package body aes_pkg is
 
-    -- Function to obtain multiplicative inverse in G(2^8) via S-Box
     function s_box_byte(byte : std_logic_vector(7 downto 0)) return std_logic_vector is
     begin
         return  S_BOX(to_integer(byte(7 downto 4)))( to_integer(127 - byte(3 downto 0)*8) 
                       downto to_integer(120 - byte(3 downto 0)*8)  );
     end s_box_byte;
 
-    -- Same as prev. but for word
     function s_box_word(word : std_logic_vector(31 downto 0)) return std_logic_vector is
     begin
         return  s_box_byte(word(31 downto 24)) & s_box_byte(word(23 downto 16)) 
                 & s_box_byte(word(15 downto 8)) & s_box_byte(word(7 downto 0));
     end s_box_word;
     
-    -- Function to multiply a byte by 2 in Galois Field 2^8
     function mul_g2(byte : std_logic_vector(7 downto 0)) return std_logic_vector is
     begin
         if byte(7) = '1' then
@@ -68,19 +73,16 @@ package body aes_pkg is
         end if;
     end mul_g2;
 
-    -- Function to multiply a byte by 3 in Galois Field 2^8
     function mul_g3(byte : std_logic_vector(7 downto 0)) return std_logic_vector is
     begin
         return mul_g2(byte) xor byte; 
     end mul_g3;
 
-    -- Function to rotate four bytes (a word) left by one byte (a.k.a. 8x rotate left)
     function rot_word(word : std_logic_vector(31 downto 0)) return std_logic_vector is
     begin
         return  word(23 downto 16) & word(15 downto 8) & word(7 downto 0) & word(31 downto 24);
     end rot_word;
-
-    -- Checks index against a LUT
+    
     function is_leftmost(index : integer) return std_logic is
     begin
         for i in L_INDX'range loop
