@@ -3,11 +3,11 @@ use ieee.std_logic_1164.all;
 library work;
 use work.aes_pkg.all;
 
-entity aes_128_top is
+entity aes_128_top_enc is
 generic
 (
-    IBW : natural range 1 to 16 := 4;  -- Input Bus Width must be power of 2
-    OBW : natural range 1 to 16 := 16  -- Output Bus Width must be power of 2
+    IBW : natural range 1 to 16;  -- Input Bus Width must be power of 2
+    OBW : natural range 1 to 16   -- Output Bus Width must be power of 2
 );
 port 
 (
@@ -16,19 +16,18 @@ port
     reset             : in std_logic;
     -- Input
     input_bus         : in std_logic_vector(IBW*8-1 downto 0);
-    input_key         : in std_logic_vector(127 downto 0);
-    input_key_valid   : in std_logic;
+    e_key             : in exp_key_type;
     init_vec          : in std_logic_vector(127 downto 0); -- initial vector to XOR with the plaintext
-    init_vec_valid    : in std_logic; -- TODO: Remove this port
+    init_vec_valid    : in std_logic; 
     -- all inputs must remain valid whenever input_valid is pulsed, even if they're from previous rounds
     input_valid       : in std_logic;                      -- Inlcudes everything: bus, key, init_vec, session_start
     -- Output
 	cipherblock       : out std_logic_vector(OBW*8-1 downto 0);
     output_valid      : out std_logic
 );
-end aes_128_top;
+end aes_128_top_enc;
 
-architecture rtl of aes_128_top is
+architecture rtl of aes_128_top_enc is
     constant IBW_ROUNDS              : natural := 16/IBW - 1; -- # of ccs required to read in the plaintext
     constant OBW_DELAY               : natural := 16/OBW - 1; -- # of ccs required to output cipherblock
     signal round_key_valid           : std_logic;
@@ -50,11 +49,12 @@ architecture rtl of aes_128_top is
     signal shift_rows_bus_out_valid  : std_logic;
     signal shift_rows_bus_out        : std_logic_vector(127 downto 0);
         
-    signal e_key                     : exp_key_type;
     signal key_ready                 : std_logic;
 
     type key_proc_state_type is (idle, start_round, enc_in_prog, end_enc);
     signal rnd_key_state             : key_proc_state_type;
+    signal xor_init_vec : std_logic;
+    signal xor_init_vec_done : std_logic;
 begin
     -- Process for buffering the input plaintext
     cntrl_proc : process(clk)
@@ -63,17 +63,24 @@ begin
     begin
         if rising_edge(clk) then
             input_block_ready <= '0'; --Reset pulse
+            xor_init_vec_done <= '0';
             if reset = '1' then
                 input_index <= 0;
             else
+                if init_vec_valid = '1' then
+                    xor_init_vec <= '1';
+                elsif xor_init_vec_done = '1' then
+                    xor_init_vec <= '0';
+                end if;
                 if input_valid = '1' or input_index = IBW_ROUNDS + 1 then
                     if input_index = IBW_ROUNDS + 1 then
                         -- we've read in the entire plaintext
-                        if init_vec_valid = '1' then
+                        if xor_init_vec = '1' then
                             -- this will override the previous cipherblock
                             plaintext <= plaintext xor init_vec; -- xor with initial vector
                             input_index <= 0;
                             input_block_ready <= '1'; -- Pulsed
+                            xor_init_vec_done <= '1'; -- Pulsed
                         elsif prev_cipherblock_valid = '1' then
                             -- xor with prev cipherblock
                             plaintext <= plaintext xor prev_cipherblock;
@@ -117,12 +124,10 @@ begin
                     ---------------------------
                     when start_round =>
                         -- In this case we xor with the state array
-                        if round_key_valid = '1' then
-                            s_box_bus_in <= plaintext xor e_key(0);
-                            s_box_bus_in_valid <= '1'; -- Pulsed
-                            rnd_key_state <= enc_in_prog;
-                            rnd_num := 0;
-                        end if;
+                        s_box_bus_in <= plaintext xor e_key(0);
+                        s_box_bus_in_valid <= '1'; -- Pulsed
+                        rnd_key_state <= enc_in_prog;
+                        rnd_num := 0;
                     ---------------------------
                     when enc_in_prog =>
                         -- In this case xor with the expanded key
@@ -152,19 +157,7 @@ begin
         end if; -- clk
     end process;
     
-    key_expansion_inst : entity work.key_expansion(rtl)
-    port map
-    (
-        -- Common
-        clk        => clk,              -- in std_logic;
-        reset      => reset,            -- in std_logic;
-        -- Input
-        key        => input_key,        -- in std_logic_vector(127 downto 0);
-        input_en   => input_key_valid,  -- in std_logic;
-        -- Output
-        e_key      => e_key,            -- out exp_key_type;
-        output_en  => round_key_valid   -- out std_logic
-    );
+
 
     s_box_inst : entity work.s_box(rtl)
     generic map

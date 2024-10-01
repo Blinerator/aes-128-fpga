@@ -24,6 +24,7 @@ There is a single 32-bit I/O bus, along with 4 control signals. Depending on the
 2. The user shall populate the data bus with the first 4 bytes of the initial vector and assert `start`. 
     - The data bus shall use little endianness. 
     - The data bus shall remain valid while `start` is asserted. 
+    - The FPGA shall assert `done` when it has read the data.
 3. The user shall repeat the handshaking sequence in (2), transmitting first the initial vector, then the key, and finally the first plaintext.
 4. The user shall assert `send_auth` to indicate it is ready to receive the cipherblock. 
     - While `send_auth` is asserted, the FPGA shall drive the data bus. 
@@ -36,11 +37,10 @@ There is a single 32-bit I/O bus, along with 4 control signals. Depending on the
 
 ## Decryption
 1. The user shall begin by toggling `reset` over at least 1 clock cycle.
-2. The user shall assert `start` and `send_auth` for at least 5 clock cycles. Upon seeing this sequence, the FPGA shall switch to decryption mode.
+2. The user shall assert `start` and `send_auth` for 5 clock cycles. Upon seeing this sequence, the FPGA shall switch to decryption mode on the 6th clock cycle.
 3. The user shall populate the data bus with the first 4 bytes of the initial vector and assert `start`. 
-    - The data bus shall use little endianness. 
-    - The data bus shall remain valid while `start` is asserted. 
-4. The user shall repeat the handshaking sequence in (2), transmitting first the initial vector, then the key, and finally the first cipherblock.
+    - The same requirements as in Encryption (2) apply here.
+4. The user shall repeat the handshaking sequence in (3), transmitting first the initial vector, then the key, and finally the first cipherblock.
 5. The user shall assert `send_auth` to indicate it is ready to receive the plaintext. 
     - While `send_auth` is asserted, the FPGA shall drive the data bus. 
 6. The user shall wait for `done` to assert, indicating valid data. Once it has read the data bus, the user shall pulse `start` to advance to the next 4 bytes of the plaintext.

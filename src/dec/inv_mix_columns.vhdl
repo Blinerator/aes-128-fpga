@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 library work;
 use work.aes_pkg.all; -- mulg2, mulg3
 
-entity mix_columns is
+entity inv_mix_columns is
 port 
 (
     -- Common
@@ -16,9 +16,9 @@ port
 	output_bus  : out std_logic_vector(127 downto 0); -- output is always 16*16 bytes
     output_en   : out std_logic
 );
-end mix_columns;
+end inv_mix_columns;
 
-architecture rtl of mix_columns is
+architecture rtl of inv_mix_columns is
 
     -- Function to mix a single column of 4 bytes. Returns a concatonated 32 bit std_logic_vector
     function mix_col(s_0, s_1, s_2, s_3 : std_logic_vector(7 downto 0)) return std_logic_vector is

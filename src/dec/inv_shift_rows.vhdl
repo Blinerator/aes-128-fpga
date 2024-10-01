@@ -1,7 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-entity shift_rows is
+entity inv_shift_rows is
 port 
 (
     -- Common
@@ -14,9 +14,9 @@ port
 	output_bus  : out std_logic_vector(127 downto 0);
     output_en   : out std_logic
 );
-end shift_rows;
+end inv_shift_rows;
 
-architecture rtl of shift_rows is
+architecture rtl of inv_shift_rows is
 begin
 
     input_proc : process(clk)
