@@ -15,7 +15,7 @@ package aes_pkg is
     type exp_key_type is array (0 to 10) of std_logic_vector(127 downto 0); -- 11 subkeys for AES-128
 
     -- TODO: Put this in BRAM, look into T-Box (combining S-Box with mixcols)
-    constant S_BOX : s_box_type :=(
+    constant S_BOX : s_box_type := (
         (x"637C777BF26B6FC53001672BFED7AB76"),
         (x"CA82C97DFA5947F0ADD4A2AF9CA472C0"),
         (x"B7FD9326363FF7CC34A5E5F171D83115"),
@@ -34,11 +34,32 @@ package aes_pkg is
         (x"8CA1890DBFE6426841992D0FB054BB16")
     );
     
+    constant INV_S_BOX : s_box_type := (
+        (x"52096AD53036A538BF40A39E81F3D7FB"),
+        (x"7CE339829B2FFF87348E4344C4DEE9CB"),
+        (x"547B9432A6C2233DEE4C950B42FAC34E"),
+        (x"082EA16628D924B2765BA2496D8BD125"),
+        (x"72F8F66486689816D4A45CCC5D65B692"),
+        (x"6C704850FDEDB9DA5E154657A78D9D84"),
+        (x"90D8AB008CBCD30AF7E45805B8B34506"),
+        (x"D02C1E8FCA3F0F02C1AFBD0301138A6B"),
+        (x"3A9111414F67DCEA97F2CFCEF0B4E673"),
+        (x"96AC7422E7AD3585E2F937E81C75DF6E"),
+        (x"47F11A711D29C5896FB7620EAA18BE1B"),
+        (x"FC563E4BC6D279209ADBC0FE78CD5AF4"),
+        (x"1FDDA8338807C731B11210592780EC5F"),
+        (x"60517FA919B54A0D2DE57A9F93C99CEF"),
+        (x"A0E03B4DAE2AF5B0C8EBBB3C83539961"),
+        (x"172B047EBA77D626E169146355210C7D")
+    );
+
     -- Function Declarations:
     -- Function to obtain multiplicative inverse in G(2^8) via S-Box
     function s_box_byte(byte : std_logic_vector(7 downto 0)) return std_logic_vector;
     -- Same as prev. but for word
     function s_box_word(word : std_logic_vector(31 downto 0)) return std_logic_vector;
+    -- Inverse of s_box_byte
+    function inv_s_box_byte(byte : std_logic_vector(7 downto 0)) return std_logic_vector;
     -- Function to multiply a byte by 2 in Galois Field 2^8
     function mul_g2(byte : std_logic_vector(7 downto 0)) return std_logic_vector;
     -- Function to multiply a byte by 3 in Galois Field 2^8
@@ -64,6 +85,12 @@ package body aes_pkg is
                 & s_box_byte(word(15 downto 8)) & s_box_byte(word(7 downto 0));
     end s_box_word;
     
+    function inv_s_box_byte(byte : std_logic_vector(7 downto 0)) return std_logic_vector is
+    begin
+        return  INV_S_BOX(to_integer(byte(7 downto 4)))( to_integer(127 - byte(3 downto 0)*8) 
+                      downto to_integer(120 - byte(3 downto 0)*8)  );
+    end inv_s_box_byte;
+
     function mul_g2(byte : std_logic_vector(7 downto 0)) return std_logic_vector is
     begin
         if byte(7) = '1' then
