@@ -64,6 +64,14 @@ package aes_pkg is
     function mul_g2(byte : std_logic_vector(7 downto 0)) return std_logic_vector;
     -- Function to multiply a byte by 3 in Galois Field 2^8
     function mul_g3(byte : std_logic_vector(7 downto 0)) return std_logic_vector;
+    -- Function to multiply a byte by 9 in Galois Field 2^8
+    function mul_g9(byte : std_logic_vector(7 downto 0)) return std_logic_vector;
+    -- Function to multiply a byte by 0xB in Galois Field 2^8
+    function mul_g11(byte : std_logic_vector(7 downto 0)) return std_logic_vector;
+    -- Function to multiply a byte by 0xD in Galois Field 2^8
+    function mul_g13(byte : std_logic_vector(7 downto 0)) return std_logic_vector;
+    -- Function to multiply a byte by 0xE in Galois Field 2^8
+    function mul_g14(byte : std_logic_vector(7 downto 0)) return std_logic_vector;
     -- Function to rotate four bytes (a word) left by one byte (a.k.a. 8x rotate left)
     function rot_word(word : std_logic_vector(31 downto 0)) return std_logic_vector;
     -- Checks index against a LUT
@@ -104,6 +112,30 @@ package body aes_pkg is
     begin
         return mul_g2(byte) xor byte; 
     end mul_g3;
+
+    function mul_g9(byte : std_logic_vector(7 downto 0)) return std_logic_vector is
+    begin
+        -- 9x = 8x + x
+        return mul_g2(mul_g2(mul_g2(byte))) xor byte;
+    end mul_g9;
+
+    function mul_g11(byte : std_logic_vector(7 downto 0)) return std_logic_vector is
+    begin
+        -- 11x = 8x + 2x + x
+        return mul_g2(mul_g2(mul_g2(byte))) xor mul_g2(byte) xor byte;
+    end mul_g11;
+
+    function mul_g13(byte : std_logic_vector(7 downto 0)) return std_logic_vector is
+    begin
+        -- 13x = 8x + 4x + x
+        return mul_g2(mul_g2(mul_g2(byte))) xor mul_g2(mul_g2(byte)) xor byte;
+    end mul_g13;
+
+    function mul_g14(byte : std_logic_vector(7 downto 0)) return std_logic_vector is
+    begin
+        -- 14x = 8x + 4x + 2x
+        return mul_g2(mul_g2(mul_g2(byte))) xor mul_g2(mul_g2(byte)) xor mul_g2(byte);
+    end mul_g14;
 
     function rot_word(word : std_logic_vector(31 downto 0)) return std_logic_vector is
     begin

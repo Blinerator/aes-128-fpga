@@ -27,31 +27,28 @@ architecture rtl of aes_128_top_wrapper is
     type enc_dec_type is (encryption, decryption);
     signal enc_dec_state : enc_dec_type;
 
-    signal init_vec   : std_logic_vector(127 downto 0);
-    signal input_key  : std_logic_vector(127 downto 0);
+    signal init_vec      : std_logic_vector(127 downto 0);
+    signal input_key     : std_logic_vector(127 downto 0);
     signal data_block_in : std_logic_vector(127 downto 0);
-    signal enc_en     : std_logic;
-    signal dec_en     : std_logic;
-    signal mode       : std_logic;    
+    signal datablock_enc : std_logic_vector(127 downto 0);
+    signal datablock_dec : std_logic_vector(127 downto 0);
+    signal enc_en        : std_logic;
+    signal dec_en        : std_logic;
+    signal mode          : std_logic;    
 
     signal input_key_valid : std_logic;
     
     -- Internal signals:
-    signal mode_sel_sr     : std_logic_vector(4 downto 0); -- Count 5 ccs 
+    signal mode_sel_sr    : std_logic_vector(4 downto 0); -- Count 5 ccs 
 
     signal e_key          : exp_key_type;
     signal input_bus      : std_logic_vector(127 downto 0);
     signal init_vec_valid : std_logic;
     signal input_valid    : std_logic;
-    -- Muxing signals:
-    -- enc/dec input muxing
-    signal input_bus_enc      : std_logic_vector(127 downto 0);
-    signal input_bus_dec      : std_logic_vector(127 downto 0);
-    signal input_key_enc      : std_logic_vector(127 downto 0);
-    signal input_key_dec      : std_logic_vector(127 downto 0);
-    signal init_vec_enc       : std_logic_vector(127 downto 0);
-    signal init_vec_dec       : std_logic_vector(127 downto 0);
+    signal expansion_done : std_logic;
+    signal first_block      : std_logic;
 
+    -- enc/dec input muxing
     signal init_vec_valid_enc : std_logic;
     signal init_vec_valid_dec : std_logic;
     signal input_valid_enc    : std_logic;
@@ -60,8 +57,6 @@ architecture rtl of aes_128_top_wrapper is
     -- enc/dec output muxing
     signal data_block_out   : std_logic_vector(127 downto 0);
     signal output_valid     : std_logic;
-    signal datablock_enc  : std_logic_vector(127 downto 0);
-    signal datablock_dec  : std_logic_vector(127 downto 0);
     signal output_valid_enc : std_logic;
     signal output_valid_dec : std_logic;
 begin
@@ -99,6 +94,7 @@ begin
                     -------------------------------
                     when read_iv =>
                     -- Don't read bus if we're potentially switching enc/dec
+                        first_block <= '1';
                         if start = '1' and send_auth /= '1' then
                             init_vec <= init_vec(95 downto 0) & data_bus; -- Shift left x32
                             shift_cnt := shift_cnt + 1;
@@ -129,7 +125,7 @@ begin
                             done <= '1'; -- Pulsed
                             if shift_cnt = 4 then
                                 input_valid <= '1'; -- Pulsed
-                                interface_state <= wait_output; -- Ready for next block TODO: this should be going to a wait output state
+                                interface_state <= wait_output;
                                 shift_cnt := 0;
                             end if;
                         end if;
@@ -140,6 +136,7 @@ begin
                         end if;
                     -------------------------------
                     when return_datablock =>
+                        first_block <= '0';
                         if send_auth = '1' then
                             -- We are cleared to drive the data bus
                             if start = '1' then
@@ -149,7 +146,7 @@ begin
                             
                             if shift_cnt = 4 then
                                 shift_cnt := 0;
-                                interface_state <= read_key;
+                                interface_state <= read_block;
                             else
                                 data_bus <= data_block_out(127 - shift_cnt*32 downto 96 - shift_cnt*32); -- data
                                 done <= '1'; -- Pulsed
@@ -167,28 +164,23 @@ begin
     port map
     (
         -- Common
-        clk        => clk,              -- in std_logic;
-        reset      => reset,            -- in std_logic;
+        clk             => clk,              -- in std_logic;
+        reset           => reset,            -- in std_logic;
         -- Input
-        key        => input_key,        -- in std_logic_vector(127 downto 0);
-        input_en   => input_key_valid,  -- in std_logic;
+        key             => input_key,        -- in std_logic_vector(127 downto 0);
+        input_en        => input_key_valid,  -- in std_logic;
         -- Output
-        e_key      => e_key,            -- out exp_key_type;
-        output_en  => open              -- out std_logic, pulses when *first* key is ready
+        e_key           => e_key,            -- out exp_key_type;
+        expansion_done  => expansion_done    -- out std_logic, pulses when *last* key is ready
     );
-    -- TODO: Only the 'valid' signals need to be muxed
-    -- enc/dec input muxing
-    input_bus_enc      <= data_block_in when mode = '0' else (others => '0');
-    input_bus_dec      <= data_block_in when mode = '1' else (others => '0');
-
-    init_vec_enc       <= init_vec when mode = '0' else (others => '0');
-    init_vec_dec       <= init_vec when mode = '1' else (others => '0');
-    
+    -- enc/dec control signal muxing
     init_vec_valid_enc <= init_vec_valid when mode = '0' else '0';
     init_vec_valid_dec <= init_vec_valid when mode = '1' else '0';
 
-    input_valid_enc    <= input_valid when mode = '0' else '0';
-    input_valid_dec    <= input_valid when mode = '1' else '0';
+    input_valid_enc    <= input_valid    when mode = '0' else '0';
+    -- Need to wait for key expansion to complete on the first block:
+    input_valid_dec    <= expansion_done when (mode = '1' and first_block = '1') else 
+                          input_valid when mode = '1' else '0'; 
 
     -- enc/dec output muxing
     data_block_out     <= datablock_enc when mode = '0' else datablock_dec;
@@ -206,9 +198,9 @@ begin
         clk              => clk,                -- in std_logic;
         reset            => reset,              -- in std_logic;
         -- Input
-        input_bus        => input_bus_enc,      -- in std_logic_vector(IBW*8-1 downto 0);
+        input_bus        => data_block_in,      -- in std_logic_vector(IBW*8-1 downto 0);
         e_key            => e_key,              -- in exp_key_type;
-        init_vec         => init_vec_enc,       -- in std_logic_vector(127 downto 0);
+        init_vec         => init_vec,           -- in std_logic_vector(127 downto 0);
         init_vec_valid   => init_vec_valid_enc, -- in std_logic;
         input_valid      => input_valid_enc,    -- in std_logic;                      
         -- Output
@@ -228,15 +220,14 @@ begin
         clk              => clk,                -- in std_logic;
         reset            => reset,              -- in std_logic;
         -- Input
-        input_bus        => input_bus_dec,      -- in std_logic_vector(IBW*8-1 downto 0);
+        input_bus        => data_block_in,      -- in std_logic_vector(IBW*8-1 downto 0);
         e_key            => e_key,              -- in exp_key_type;
-        init_vec         => init_vec_dec,       -- in std_logic_vector(127 downto 0);
+        init_vec         => init_vec,           -- in std_logic_vector(127 downto 0);
         init_vec_valid   => init_vec_valid_dec, -- in std_logic;
         input_valid      => input_valid_dec,    -- in std_logic;                      
         -- Output
-        cipherblock      => datablock_dec,      -- out std_logic_vector(OBW*8-1 downto 0);
+        plaintext        => datablock_dec,      -- out std_logic_vector(OBW*8-1 downto 0);
         output_valid     => output_valid_dec    -- out std_logic
     );
-
 
 end architecture rtl;

@@ -32,8 +32,8 @@ There is a single 32-bit I/O bus, along with 4 control signals. Depending on the
     - The data bus shall use little endianness.
     - The data bus shall remain valid while `done` is asserted.
 6. The handshaking sequence in (4) shall be repeated until the cipherblock has been transmitted.
-7. Once the cipherblock has been egressed from the FPGA, the user may begin transmitting a new plaintext using the sequence in (2) and (3), transmitting only the key and plaintext.
-8. To change the initial vector, the user shall start from (1).
+7. Once the cipherblock has been egressed from the FPGA, the user may begin transmitting a new plaintext using the sequence in (2) and (3), transmitting only the plaintext.
+8. To change the initial vector and/or key, the user shall start from (1).
 
 ## Decryption
 1. The user shall begin by toggling `reset` over at least 1 clock cycle.
@@ -47,4 +47,5 @@ There is a single 32-bit I/O bus, along with 4 control signals. Depending on the
     - The data bus shall use little endianness.
     - The data bus shall remain valid while `done` is asserted.
 7. The handshaking sequence in (4) shall be repeated until the plaintext has been transmitted.
-8. Once the plaintext has been egressed from the FPGA, the user may begin transmitting a new cipherblock using the sequence in (2) and (3), transmitting only the key and cipherblock.
+8. Once the plaintext has been egressed from the FPGA, the user may begin transmitting a new cipherblock using the sequence in (2) and (3), transmitting only the cipherblock.
+8. To change the initial vector and/or key, the user shall start from (1).

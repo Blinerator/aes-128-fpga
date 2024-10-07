@@ -7,14 +7,14 @@ entity key_expansion is
 port 
 (
     -- Common
-    clk           : in std_logic;
-    reset         : in std_logic;
+    clk            : in std_logic;
+    reset          : in std_logic;
     -- Input
-    key           : in std_logic_vector(127 downto 0);
-    input_en      : in std_logic;
+    key            : in std_logic_vector(127 downto 0);
+    input_en       : in std_logic;
     -- Output
-	e_key         : out exp_key_type;
-    output_en     : out std_logic
+	e_key          : out exp_key_type;
+    expansion_done : out std_logic
 );
 end key_expansion;
 
@@ -35,7 +35,7 @@ begin
         variable col_num : integer range 0 to 3;
     begin
         if rising_edge(clk) then
-            output_en <= '0';
+            expansion_done <= '0';
             if reset = '1' then
                 expansion_in_prog <= '0';
                 index <= 4;
@@ -50,8 +50,6 @@ begin
                         row_num := row_num + 1; -- assigned immediately
                         -- the leftmost word is derived from:
                         e_key_i(row_num)(127 downto 96) <= e_key_i(row_num-1)(127 downto 96) xor s_box_word(rot_word(e_key_i(row_num-1)(31 downto 0))) xor R_CON(row_num-1);                
-                        -- e_key is ready 1 cc before this, but this is the most resource efficient
-                        output_en <= '1'; -- Pulsed
                     else
                         -- the other words are derived from:
                         col_num := index-NUM_COLS*row_num;
@@ -64,6 +62,7 @@ begin
                         -- Reset the internal variables so we're ready for a new key next cc
                         index   <= 4;
                         row_num := 0;
+                        expansion_done <= '1'; -- Pulsed
                     else
                         -- iterate counter
                         index <= index + 1;
