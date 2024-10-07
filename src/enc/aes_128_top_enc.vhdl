@@ -118,16 +118,14 @@ begin
                     -- This initiates the encryption round
                     rnd_key_state <= start_round;
                     prev_cipherblock_valid <= '0';
+                    -- In this case we xor with the state array
+                    s_box_bus_in <= plaintext xor e_key(0);
+                    s_box_bus_in_valid <= '1'; -- Pulsed
+                    rnd_key_state <= enc_in_prog;
+                    rnd_num := 0;
                 end if;
 
                 case rnd_key_state is
-                    ---------------------------
-                    when start_round =>
-                        -- In this case we xor with the state array
-                        s_box_bus_in <= plaintext xor e_key(0);
-                        s_box_bus_in_valid <= '1'; -- Pulsed
-                        rnd_key_state <= enc_in_prog;
-                        rnd_num := 0;
                     ---------------------------
                     when enc_in_prog =>
                         -- In this case xor with the expanded key
