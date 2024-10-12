@@ -1,6 +1,5 @@
 library ieee;
 use ieee.std_logic_1164.all;
-library work;
 use work.aes_pkg.all; -- inv_s_box_byte
 
 entity inv_s_box is

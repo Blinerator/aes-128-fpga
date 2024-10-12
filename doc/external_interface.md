@@ -7,7 +7,7 @@ There is a single 32-bit I/O bus, along with 4 control signals. Depending on the
 
 ### Figure 1: Block Diagram
 
-<img src="figures/interface.drawio.png" alt="" width="500"/>
+<img src="figures/interface.drawio.png" alt="" width="750"/>
 
 ### Table 1: Signals
 

@@ -1,6 +1,5 @@
 library ieee;
 use ieee.std_logic_1164.all;
-library work;
 use work.aes_pkg.all;
 
 entity aes_128_top_wrapper is
@@ -187,11 +186,6 @@ begin
     output_valid       <= output_valid_enc when mode = '0' else output_valid_dec;
 
     aes_128_top_enc_inst : entity work.aes_128_top_enc(rtl)
-    generic map
-    (
-        IBW => 16,
-        OBW => 16
-    )
     port map
     (
         -- Common
@@ -209,11 +203,6 @@ begin
     );
 
     aes_128_top_dec_inst : entity work.aes_128_top_dec(rtl)
-    generic map
-    (
-        IBW => 16,
-        OBW => 16
-    )
     port map
     (
         -- Common
