@@ -1,6 +1,5 @@
 library ieee;
 use ieee.std_logic_1164.all;
-library work;
 use work.aes_pkg.all; -- mulg2, mulg3
 
 entity inv_mix_columns is

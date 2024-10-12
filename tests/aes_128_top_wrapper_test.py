@@ -5,8 +5,7 @@ from pathlib import Path
 
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge
-from cocotb.triggers import Timer
+
 from cocotb_tools.runner import get_runner
 from common.common import *
 
@@ -22,103 +21,6 @@ ONES_128   = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
 FIPS_KEY    = 0x2B7E151628AED2A6ABF7158809CF4F3C
 FIPS_INPUT  = 0x3243F6A8885A308D313198A2E0370734
 FIPS_OUTPUT = 0x3925841D02DC09FBDC118597196A0B32
-
-async def sync(dut, ccs):
-    for _ in range(ccs): await RisingEdge(dut.clk)
-
-async def reset(dut):
-    await RisingEdge(dut.clk)
-    dut.reset.value = 1
-    await RisingEdge(dut.clk)
-    dut.reset.value = 0
-    await RisingEdge(dut.clk)
-    return
-
-async def transmit_block(dut, block):
-    """
-    Transmits 4 bytes of data on the databus as per interface specifications.
-    """
-    for i in range(4):
-        input_bytes = (block & (0xFFFFFFFF << 32*(3-i))) >> 32*(3-i)
-        dut.data_bus.value = input_bytes
-        dut.start.value = 1
-        await RisingEdge(dut.clk)
-        if dut.done.value != 1:
-            await RisingEdge(dut.done)
-
-    dut.start.value = 0
-    return
-
-def to_hex(value):
-    return "0x" + hex(int(value)).upper()[2:].zfill(8)
-    
-
-async def receive_block(dut):
-    """
-    Receives 4 bytes of data on the databus as per interface specifications.
-    """
-    block = 0
-    dut.send_auth.value = 1
-    await RisingEdge(dut.done)
-    for i in range(4):
-        dut.start.value = 1
-        await sync(dut, 1)
-        block += int(dut.data_bus.value) << 32*(3-i)
-        if dut.done.value != 1:
-            await RisingEdge(dut.done)
-
-    dut.start.value = 0
-    dut.send_auth.value = 0
-    return block
-
-async def transmit_init_sequence(dut, init_vec, key, data):
-    """
-    Transmits an initial sequence of the initial vector, key, and data (cipherblock or plaintext)
-    """
-    await transmit_block(dut, init_vec)
-    await transmit_block(dut, key)
-    await transmit_block(dut, data)
-    return
-
-async def switch_dec(dut):
-    """
-    Switches to decryption mode as per interface specifications.
-    """
-    await reset(dut)
-    dut.start.value = 1
-    dut.send_auth.value = 1
-    await sync(dut, 5)
-    dut.start.value = 0
-    dut.send_auth.value = 0
-    return
-
-async def dut_encode_bytes(dut, init_vec, key, data) -> bytes:
-    """
-    Expects padded bytes.
-    """
-    await transmit_init_sequence(dut, init_vec, key, int_f_b(data[0:16]))
-    output = byte(await receive_block(dut)) # bytes object
-    data_blocks = round(len(data)/16)
-    for i in range(1, data_blocks):
-        await transmit_block(dut, int_f_b(data[i*16:(i+1)*16]))
-        output += byte(await receive_block(dut))
-    return output
-
-async def dut_decode_bytes(dut, init_vec, key, data) -> bytes:
-    """
-    Expects a multiple of 16 number of bytes. Returns unpadded bytes.
-    """
-    await switch_dec(dut)
-    await transmit_init_sequence(dut, init_vec, key, int_f_b(data[0:16]))
-    output = byte(await receive_block(dut)) # bytes object
-    data_blocks = round(len(data)/16)
-
-    for i in range(1, data_blocks):
-        await transmit_block(dut, int_f_b(data[i*16:(i+1)*16]))
-        output += byte(await receive_block(dut))
-    print(output)
-    return unpad(output, AES.block_size)
-
 
 @cocotb.test()
 async def test_1(dut):
@@ -202,22 +104,9 @@ async def test_3(dut):
     key = random.randint(0,ONES_128)
     data = "This data is not for prying eyes!"
     # Pad the plaintext to be a multiple of the AES block size (16 bytes)
-    padded_plaintext = pad(data.encode('utf-8'), AES.block_size)
-    print(padded_plaintext)
-    enc_data = encrypt_string(iv, key, padded_plaintext)
-    # print(decrypt_string(iv,key,enc_data.hex()))
-
-    # Write to files
-    src_file = f"{proj_path}/tests/test_3_data_source.txt"
-    exp_enc_file = f"{proj_path}/tests/test_3_exp_enc.txt"
-    dut_enc_file = f"{proj_path}/tests/test_3_enc.txt"
-    dut_dec_file = f"{proj_path}/tests/test_3_dec.txt"
-
-    with open(src_file, 'w') as f:
-        f.write(data)
-    
-    with open(exp_enc_file, 'w') as f:
-        f.write(enc_data.hex())
+    raw_data = data.encode('utf-8')
+    padded_plaintext = pad(raw_data, AES.block_size)
+    exp_enc_bytes = encrypt_string(iv, key, padded_plaintext)
 
     # Create clock
     clock = Clock(dut.clk, 8, units="ns")
@@ -227,15 +116,12 @@ async def test_3(dut):
     await reset(dut)
 
     encoded_bytes = await dut_encode_bytes(dut, iv, key, padded_plaintext)
-    print(hex(int_f_b(encoded_bytes)))
+    assert encoded_bytes == exp_enc_bytes, "Encrypted bytes did not match expected value."
 
     decoded_bytes = await dut_decode_bytes(dut, iv, key, encoded_bytes)
-    print(hex(int_f_b(decoded_bytes)))
+    assert decoded_bytes == raw_data, "Decrypted bytes did not match expected value."
 
-
-    await sync(dut, 5)
-
-
+    await sync(dut, 1)
 
 def test_aes_128_top_wrapper_runner():
     src = "aes_128_top_wrapper"

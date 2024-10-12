@@ -1,36 +1,26 @@
 library ieee;
 use ieee.std_logic_1164.all;
-library work;
 use work.aes_pkg.all;
 
 entity aes_128_top_dec is
-generic
-(
-    IBW : natural range 1 to 16;  -- Input Bus Width must be power of 2
-    OBW : natural range 1 to 16   -- Output Bus Width must be power of 2
-);
 port 
 (
     -- Common
     clk            : in std_logic;
     reset          : in std_logic;
     -- Input
-    input_bus      : in std_logic_vector(IBW*8-1 downto 0);
+    input_bus      : in std_logic_vector(127 downto 0);
     e_key          : in exp_key_type;
     init_vec       : in std_logic_vector(127 downto 0); -- initial vector to XOR with the cipherblock
     init_vec_valid : in std_logic; 
     input_valid    : in std_logic;
     -- Output
-	plaintext      : out std_logic_vector(OBW*8-1 downto 0);
+	plaintext      : out std_logic_vector(127 downto 0);
     output_valid   : out std_logic
 );
 end aes_128_top_dec;
 
 architecture rtl of aes_128_top_dec is
-    constant IBW_ROUNDS              : natural := 16/IBW - 1; -- # of ccs required to read in the cipherblock
-    signal input_index               : natural range 0 to 16; 
-    signal input_block_ready         : std_logic;
-    
     signal prev_cipherblock          : std_logic_vector(127 downto 0);
     
     signal shift_rows_bus_in         : std_logic_vector(127 downto 0);
@@ -46,9 +36,6 @@ architecture rtl of aes_128_top_dec is
     signal mix_columns_bus_out       : std_logic_vector(127 downto 0);
     signal mix_columns_bus_out_valid : std_logic;
     
-        
-    signal key_ready                 : std_logic;
-
     type key_proc_state_type is (idle, dec_in_prog, end_dec);
     signal rnd_key_state             : key_proc_state_type;
     signal xor_init_vec : std_logic;

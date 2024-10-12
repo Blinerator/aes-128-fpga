@@ -1,6 +1,5 @@
 library ieee;
 use ieee.std_logic_1164.all;
-library work;
 use work.aes_pkg.all; -- exp_key_type, s_box_word, rot_word, R_CON
 
 entity key_expansion is
@@ -24,12 +23,6 @@ architecture rtl of key_expansion is
     signal index             : integer range 4 to 43;
     signal e_key_i           : exp_key_type;
 begin
-
--- We need to provide 1 key per round
--- ByteSub, ShiftRow, and MixCol take x ccs to complete
--- This means we can take x ccs to output each key. The following implementation
--- assumes this timing.
-
     ctrl_proc : process(clk)
         variable row_num : integer range 0 to 10;
         variable col_num : integer range 0 to 3;
