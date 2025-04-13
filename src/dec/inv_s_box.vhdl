@@ -1,3 +1,4 @@
+-- © 2025 Ilya Cable <ilya.cable1@gmail.com>
 library ieee;
 use ieee.std_logic_1164.all;
 use work.aes_pkg.all; -- inv_s_box_byte

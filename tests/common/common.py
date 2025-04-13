@@ -1,3 +1,4 @@
+# © 2025 Ilya Cable <ilya.cable1@gmail.com>
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
 from cocotb.triggers import RisingEdge

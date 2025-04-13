@@ -1,3 +1,4 @@
+-- © 2025 Ilya Cable <ilya.cable1@gmail.com>
 library ieee;
 use ieee.std_logic_1164.all;
 use IEEE.numeric_std_unsigned.all;
@@ -7,14 +8,14 @@ package aes_pkg is
     type round_const_type is array(0 to 9) of std_logic_vector(31 downto 0);
     constant R_CON : round_const_type := ( 
         x"01000000", x"02000000", x"04000000", x"08000000", x"10000000", x"20000000", x"40000000", x"80000000", x"1B000000", x"36000000");
-    -- constant R_CON : std_logic_vector(79 downto 0) := x"01020408102040801B36"; -- TODO: these can be generated with mul_g2
+        
     type int_arr_10 is array(0 to 9) of integer;
     constant L_INDX : int_arr_10 := (4, 8, 12, 16, 20, 24, 28, 32, 36, 40);
 
     type s_box_type is array (0 to 15) of std_logic_vector(127 downto 0);
     type exp_key_type is array (0 to 10) of std_logic_vector(127 downto 0); -- 11 subkeys for AES-128
 
-    -- TODO: Put this in BRAM, look into T-Box (combining S-Box with mixcols)
+    -- TODO: Put this in BRAM
     constant S_BOX : s_box_type := (
         (x"637C777BF26B6FC53001672BFED7AB76"),
         (x"CA82C97DFA5947F0ADD4A2AF9CA472C0"),

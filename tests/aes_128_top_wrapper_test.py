@@ -1,3 +1,4 @@
+# © 2025 Ilya Cable <ilya.cable1@gmail.com>
 import os
 import random
 import sys
