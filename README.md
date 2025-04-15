@@ -36,8 +36,5 @@ The design is broken up into the following components:
     - Implements cipher block chaining mode decryption.
 - [aes_128_top_wrapper](doc/aes_128_top_wrapper.md)
     - Implements the external interface and instantiates encryption/decryption top levels. 
-- [aes_128_top_wrapper_simple](doc/aes_128_top_wrapper.md)
+- [aes_128_top_wrapper_simple](doc/aes_128_top_wrapper_simple.md)
     - A simple version of the above, which directly exposes interfaces to aes_128_top_enc and aes_128_top_dec on the port map. Ideal for use with registers implemented in a top level.
-
-
-## [Jump to documentation](doc/aes_128.md)

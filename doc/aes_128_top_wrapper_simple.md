@@ -35,6 +35,9 @@ Both encryption and decryption interfaces work the same way. Inputs should be re
 6. Repeat the sequence until all plaintexts are encrypted.
 7. To change the initial vector and/or key, pulse reset and repeat steps (1-6).
 
+Two copies of the same FSM are used to control encryption and decryption:
+<img src="figures/control_fsm_simple.drawio.png" alt="" width="500"/>
+
 # Simulation Instructions
 To run testbenches, follow the [environment setup](env-setup.md). Debian on WSL was used for the setup instructions, but the basic steps should remain the same.
 
