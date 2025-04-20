@@ -6,7 +6,8 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use work.aes_pkg.all;
-entity enc_wrapper is
+
+entity dec_wrapper is
 port 
 (
     clk       : in std_logic;
@@ -19,13 +20,14 @@ port
     start       : in std_logic;    
     done        : out std_logic
 );
-end enc_wrapper;
+end dec_wrapper;
 
-architecture rtl of enc_wrapper is
+architecture rtl of dec_wrapper is
     signal expansion_done     : std_logic;
     signal crypt_output_valid : std_logic;
     signal key_valid          : std_logic;
     signal start_crypt        : std_logic;
+    signal e_key              : exp_key_type;
 
 begin
     control_inst : entity work.control_fsm(rtl)
@@ -72,7 +74,7 @@ begin
         init_vec_valid   => start_crypt, 
         input_valid      => start_crypt,    
         -- Output
-        cipherblock      => cipherblock,      
+        plaintext        => cipherblock,      
         output_valid     => crypt_output_valid    
     );
 

@@ -1,6 +1,6 @@
 # aes_128_top_wrapper_simple
 # Block Diagram
-<img src="figures/block_diagram_simple.drawio.png" alt="" width="500"/>
+<img src="figures/block_diagram_simple.drawio.png" alt="" width="1000"/>
 
 # External Interface
 

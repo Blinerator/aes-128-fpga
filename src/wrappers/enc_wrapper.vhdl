@@ -6,6 +6,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use work.aes_pkg.all;
+
 entity enc_wrapper is
 port 
 (
@@ -26,6 +27,7 @@ architecture rtl of enc_wrapper is
     signal crypt_output_valid : std_logic;
     signal key_valid          : std_logic;
     signal start_crypt        : std_logic;
+    signal e_key              : exp_key_type;
 
 begin
     control_inst : entity work.control_fsm(rtl)

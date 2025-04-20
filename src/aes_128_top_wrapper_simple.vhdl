@@ -9,10 +9,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use work.aes_pkg.all;
-entity aes_128_top_wrapper is
+entity aes_128_top_wrapper_simple is
 generic
 (
-    MODE => string -- ENC, DEC, ENC_DEC
+    MODE : string -- ENC, DEC, ENC_DEC
 );
 port 
 (
@@ -34,16 +34,16 @@ port
     plaintext_dec   : in std_logic_vector(127 downto 0);        
     cipherblock_dec : out std_logic_vector(127 downto 0);          
     start_dec       : in std_logic;    
-    done_dec        : out std_logic;    
+    done_dec        : out std_logic
 );
-end aes_128_top_wrapper;
+end aes_128_top_wrapper_simple;
 
-architecture rtl of aes_128_top_wrapper is
+architecture rtl of aes_128_top_wrapper_simple is
 begin
     assert MODE = "ENC" or MODE = "DEC" or MODE = "ENC_DEC" 
         report "Error: MODE setting was invalid" severity failure;
     
-    mode_gen : if MODE = "ENC" or MODE = "ENC_DEC" generate
+    mode_gen_1 : if MODE = "ENC" or MODE = "ENC_DEC" generate
         enc_inst : entity work.enc_wrapper(rtl)
         port map
         (
@@ -57,7 +57,8 @@ begin
             start       => start_enc,
             done        => done_enc
         );
-    elsif MODE = "DEC" or MODE = "ENC_DEC" generate
+    end generate mode_gen_1;
+    mode_gen_2 : if MODE = "DEC" or MODE = "ENC_DEC" generate
         dec_inst : entity work.dec_wrapper(rtl)
         port map
         (
@@ -71,6 +72,6 @@ begin
             start       => start_dec,
             done        => done_dec
         );
-    end generate;
+    end generate mode_gen_2;
 
 end architecture rtl;

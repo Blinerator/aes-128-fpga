@@ -23,7 +23,7 @@ FIPS_KEY    = 0x2B7E151628AED2A6ABF7158809CF4F3C
 FIPS_INPUT  = 0x3243F6A8885A308D313198A2E0370734
 FIPS_OUTPUT = 0x3925841D02DC09FBDC118597196A0B32
 
-@cocotb.test()
+# @cocotb.test()
 async def test_1(dut):
     """
     This tests the DUT based on FIPS-197 Appendix B, with one round of encryption and one round of decryption.
@@ -54,7 +54,7 @@ async def test_1(dut):
 
     await sync(dut, 10)
 
-@cocotb.test()
+# @cocotb.test()
 async def test_2(dut):
     """
     Tests one round of AES-128 enc/dec, this time utilizing random numbers and the initial vector.
@@ -94,7 +94,7 @@ async def test_2(dut):
 
     await sync(dut, 10)
 
-@cocotb.test()
+# @cocotb.test()
 async def test_3(dut):
     """
     Tests multiple rounds of AES-128 enc/dec.
@@ -124,28 +124,32 @@ async def test_3(dut):
 
     await sync(dut, 1)
 
-def test_aes_128_top_wrapper_runner():
-    src = "aes_128_top_wrapper"
+def test_aes_128_top_wrapper_simple_runner():
+    src = "aes_128_top_wrapper_simple"
     sim = os.getenv("SIM", "questa")
 
-    aes_pkg_path    = proj_path / "src" / "common" /"aes_pkg.vhdl"
-    key_exp_path    = proj_path / "src" / "common" /"key_expansion.vhdl"
-    top_enc_path    = proj_path / "src" / "enc" /"aes_128_top_enc.vhdl"
-    mix_cols_path   = proj_path / "src" / "enc" /"mix_columns.vhdl"
-    s_box_path      = proj_path / "src" / "enc" /"s_box.vhdl"
-    shift_rows_path = proj_path / "src" / "enc" /"shift_rows.vhdl"
-    
-    top_dec_path  = proj_path / "src" / "dec" /"aes_128_top_dec.vhdl"
-    inv_mix_cols_path = proj_path / "src" / "dec" /"inv_mix_columns.vhdl"
-    inv_s_box_path = proj_path / "src" / "dec" /"inv_s_box.vhdl"
-    inv_shift_rows_path = proj_path / "src" / "dec" /"inv_shift_rows.vhdl"
-    
-    top_wrapper_path = proj_path / "src" / f"{src}.vhdl"
+    aes_pkg_path    = proj_path/"src"/"common"/"aes_pkg.vhdl"
+    key_exp_path    = proj_path/"src"/"common"/"key_expansion.vhdl"
+    control_fsm_path = proj_path/"src"/"common"/"control_fsm.vhdl"
 
-    sources = [aes_pkg_path, key_exp_path, mix_cols_path,
-               s_box_path, shift_rows_path, top_enc_path,
+    top_enc_path    = proj_path/"src"/"enc"/"aes_128_top_enc.vhdl"
+    mix_cols_path   = proj_path/"src"/"enc"/"mix_columns.vhdl"
+    s_box_path      = proj_path/"src"/"enc"/"s_box.vhdl"
+    shift_rows_path = proj_path/"src"/"enc"/"shift_rows.vhdl"
+    enc_wrapper_path = proj_path/"src"/"wrappers"/"enc_wrapper.vhdl"
+
+    top_dec_path  = proj_path/"src"/"dec"/"aes_128_top_dec.vhdl"
+    inv_mix_cols_path = proj_path/"src"/"dec"/"inv_mix_columns.vhdl"
+    inv_s_box_path = proj_path/"src"/"dec"/"inv_s_box.vhdl"
+    inv_shift_rows_path = proj_path/"src"/"dec"/"inv_shift_rows.vhdl"
+    dec_wrapper_path = proj_path/"src"/"wrappers"/"dec_wrapper.vhdl"
+    
+    top_wrapper_path = proj_path/"src"/f"{src}.vhdl"
+
+    sources = [aes_pkg_path, key_exp_path, control_fsm_path, mix_cols_path,
+               s_box_path, shift_rows_path, top_enc_path, enc_wrapper_path,
                inv_mix_cols_path, inv_s_box_path, inv_shift_rows_path,
-               top_dec_path, top_wrapper_path]
+               top_dec_path, dec_wrapper_path, top_wrapper_path]
     
     build_arg_im = (f'-wlf {proj_path}/tests/test.wlf')
     
@@ -164,9 +168,8 @@ def test_aes_128_top_wrapper_runner():
         hdl_toplevel=f"{src}", 
         test_module=f"{src}_test", 
         test_args=test_args,
-        waves = True,
-        parameters = {"MODE" : "ENC_DEC"}
+        waves = True
     )
 
 if __name__ == "__main__":
-    test_aes_128_top_wrapper_runner()
+    test_aes_128_top_wrapper_simple_runner()

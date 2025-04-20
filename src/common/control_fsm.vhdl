@@ -38,7 +38,7 @@ begin
                 control_state <= idle;
             else
                 -- Clear pulsed signals
-                key_enc_valid <= '0';
+                key_valid <= '0';
                 start_crypt <= '0';
                 
                 -- Controller FSM
@@ -47,7 +47,7 @@ begin
                     when initial_setup => 
                         if expansion_done = '1' then
                             start_crypt <= '1'; -- Pulsed
-                            state <= do_crypt;
+                            control_state <= do_crypt;
                         end if;
                     
                     ------------------------------
@@ -65,11 +65,12 @@ begin
                         end if;
 
                     ------------------------------
-                    when other => -- idle
+                    when others => -- idle
                         if start = '1' then
                             key_valid <= '1'; -- Pulsed
                             control_state <= initial_setup;
                         end if;
+                end case;
             end if; -- reset
         end if; -- clk
     end process control_proc;
