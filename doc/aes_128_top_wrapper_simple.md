@@ -9,7 +9,8 @@
 | Name           | Width | Direction | Description 
 |----------------|-------|-----------|------------
 | clk            | 1     | In        | External reference clock
-| reset          | 1     | In        | Synchronous reset
+| reset_enc      | 1     | In        | Synchronous reset for encryption logic
+| reset_dec      | 1     | In        | Synchronous reset for decryption logic
 |**Encryption Interface**|||
 | init_vec_enc    | 128   | In        | Initial vector
 | key_enc         | 128   | In        | Key

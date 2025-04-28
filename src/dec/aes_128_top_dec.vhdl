@@ -99,7 +99,7 @@ begin
                         end if;
                     --------------------------
                     when end_dec =>
-                        if xor_init_vec = '1' then
+                        if xor_init_vec = '1' or init_vec_valid = '1' then
                             plaintext <= plaintext_i xor init_vec;
                             xor_init_vec_done <= '1'; -- Pulsed
                         else

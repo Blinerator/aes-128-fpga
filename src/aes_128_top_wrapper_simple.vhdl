@@ -31,8 +31,8 @@ port
     -- Decryption Interface
     init_vec_dec    : in std_logic_vector(127 downto 0);       
     key_dec         : in std_logic_vector(127 downto 0);  
-    plaintext_dec   : in std_logic_vector(127 downto 0);        
-    cipherblock_dec : out std_logic_vector(127 downto 0);          
+    cipherblock_dec : in std_logic_vector(127 downto 0);        
+    plaintext_dec   : out std_logic_vector(127 downto 0);          
     start_dec       : in std_logic;    
     done_dec        : out std_logic
 );
@@ -67,8 +67,8 @@ begin
         
             init_vec    => init_vec_dec,   
             key         => key_dec,
-            plaintext   => plaintext_dec,    
             cipherblock => cipherblock_dec,       
+            plaintext   => plaintext_dec,    
             start       => start_dec,
             done        => done_dec
         );

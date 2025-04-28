@@ -9,6 +9,7 @@ from cocotb.clock import Clock
 
 from cocotb_tools.runner import get_runner
 from common.common import *
+from common.wrapper_simple_utils import *
 
 proj_path = Path(__file__).resolve().parent.parent
 
@@ -23,7 +24,7 @@ FIPS_KEY    = 0x2B7E151628AED2A6ABF7158809CF4F3C
 FIPS_INPUT  = 0x3243F6A8885A308D313198A2E0370734
 FIPS_OUTPUT = 0x3925841D02DC09FBDC118597196A0B32
 
-# @cocotb.test()
+@cocotb.test()
 async def test_1(dut):
     """
     This tests the DUT based on FIPS-197 Appendix B, with one round of encryption and one round of decryption.
@@ -32,24 +33,32 @@ async def test_1(dut):
     clock = Clock(dut.clk, 8, units="ns")
     cocotb.start_soon(clock.start(start_high=False))
 
+    # Initialise testbench class
+    tb = TB(dut)
+
     # Reset
-    await reset(dut)
+    await tb.reset()
 
     # Encrypt a block
-    await transmit_init_sequence(dut, ZEROES_128, FIPS_KEY, FIPS_INPUT)
+    # Place initial vector on init_vec_enc
+    await tb.init_encryption(ZEROES_128, FIPS_KEY, FIPS_INPUT)
 
-    # Receive the cipherblock
-    return_block_enc = await receive_block(dut)
+    # Pulse start_enc
+    await tb.start_encryption()
+
+    return_block_enc = await tb.get_cipherblock()
+
     assert return_block_enc == FIPS_OUTPUT, f"Error: Encrypted block [{to_hex(return_block_enc)}] did not match expected value [{to_hex(FIPS_OUTPUT)}]."
     
-    # Switch to decryption mode
-    await switch_dec(dut)
-    
-    # Decrypt the return value
-    await transmit_init_sequence(dut, ZEROES_128, FIPS_KEY, return_block_enc)
+    # Try the decryption interface
+    await tb.init_decryption(ZEROES_128, FIPS_KEY, return_block_enc)
+
+    # Pulse start_dec
+    await tb.start_decryption()
 
     # Receive the plaintext
-    return_block_dec = await receive_block(dut)
+    return_block_dec = await tb.get_plaintext()
+
     assert return_block_dec == FIPS_INPUT, f"Error: Decrypted block [{to_hex(return_block_dec)}] did not match expected value [{to_hex(FIPS_INPUT)}]."
 
     await sync(dut, 10)
@@ -168,7 +177,8 @@ def test_aes_128_top_wrapper_simple_runner():
         hdl_toplevel=f"{src}", 
         test_module=f"{src}_test", 
         test_args=test_args,
-        waves = True
+        waves = True,
+        parameters = {"MODE" : "ENC_DEC"}
     )
 
 if __name__ == "__main__":

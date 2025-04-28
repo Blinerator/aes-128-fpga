@@ -15,8 +15,8 @@ port
 
     init_vec    : in std_logic_vector(127 downto 0);       
     key         : in std_logic_vector(127 downto 0);  
-    plaintext   : in std_logic_vector(127 downto 0);        
-    cipherblock : out std_logic_vector(127 downto 0);          
+    cipherblock : in std_logic_vector(127 downto 0);        
+    plaintext   : out std_logic_vector(127 downto 0);          
     start       : in std_logic;    
     done        : out std_logic
 );
@@ -68,13 +68,13 @@ begin
         clk              => clk,                
         reset            => reset,              
         -- Input
-        input_bus        => plaintext,      
+        input_bus        => cipherblock,      
         e_key            => e_key,              
         init_vec         => init_vec,           
         init_vec_valid   => start_crypt, 
         input_valid      => start_crypt,    
         -- Output
-        plaintext        => cipherblock,      
+        plaintext        => plaintext,      
         output_valid     => crypt_output_valid    
     );
 

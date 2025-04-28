@@ -7,8 +7,11 @@ from pathlib import Path
 import cocotb
 from cocotb.clock import Clock
 
+from Crypto.Util.Padding import pad
+
 from cocotb_tools.runner import get_runner
 from common.common import *
+from common.wrapper_utils import *
 
 proj_path = Path(__file__).resolve().parent.parent
 
@@ -158,14 +161,13 @@ def test_aes_128_top_wrapper_runner():
         sources=sources,
         hdl_toplevel=f"{src}",
         always=True,
-        build_args=build_args,
+        build_args=build_args
     )
     runner.test(
         hdl_toplevel=f"{src}", 
         test_module=f"{src}_test", 
         test_args=test_args,
-        waves = True,
-        parameters = {"MODE" : "ENC_DEC"}
+        waves = True
     )
 
 if __name__ == "__main__":
