@@ -26,6 +26,7 @@ architecture rtl of dec_wrapper is
     signal expansion_done     : std_logic;
     signal crypt_output_valid : std_logic;
     signal key_valid          : std_logic;
+    signal iv_valid           : std_logic;
     signal start_crypt        : std_logic;
     signal e_key              : exp_key_type;
 
@@ -44,6 +45,7 @@ begin
         -- Output
         key_valid          => key_valid,       
         start_crypt        => start_crypt,
+        iv_valid           => iv_valid,
         done               => done 
     );
 
@@ -71,7 +73,7 @@ begin
         input_bus        => cipherblock,      
         e_key            => e_key,              
         init_vec         => init_vec,           
-        init_vec_valid   => start_crypt, 
+        init_vec_valid   => iv_valid, 
         input_valid      => start_crypt,    
         -- Output
         plaintext        => plaintext,      

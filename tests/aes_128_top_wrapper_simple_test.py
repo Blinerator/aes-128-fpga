@@ -24,7 +24,7 @@ FIPS_KEY    = 0x2B7E151628AED2A6ABF7158809CF4F3C
 FIPS_INPUT  = 0x3243F6A8885A308D313198A2E0370734
 FIPS_OUTPUT = 0x3925841D02DC09FBDC118597196A0B32
 
-@cocotb.test()
+@cocotb.test(timeout_time=2000, timeout_unit='ns')
 async def test_1(dut):
     """
     This tests the DUT based on FIPS-197 Appendix B, with one round of encryption and one round of decryption.
@@ -63,11 +63,14 @@ async def test_1(dut):
 
     await sync(dut, 10)
 
-# @cocotb.test()
+@cocotb.test(timeout_time=2000, timeout_unit='ns')
 async def test_2(dut):
     """
     Tests one round of AES-128 enc/dec, this time utilizing random numbers and the initial vector.
     """
+
+    # Initialise testbench class
+    tb = TB(dut)
 
     # Generate a random initial vector
     init_vec  = random.randint(0,ONES_128)
@@ -79,31 +82,30 @@ async def test_2(dut):
     cocotb.start_soon(clock.start())
 
     # Reset
-    await reset(dut)
+    await tb.reset()
 
     # Get the expected cipherblock
-    expected_enc = encrypt_int_128 (init_vec, key, plaintext)
+    expected_enc = encrypt_int_128(init_vec, key, plaintext)
 
     # Encrypt a block
-    await transmit_init_sequence(dut, init_vec, key, plaintext)
+    await tb.init_encryption(init_vec, key, plaintext)
+    await tb.start_encryption()
 
     # Receive the cipherblock
-    return_block_enc = await receive_block(dut)
+    return_block_enc = await tb.get_cipherblock()
     assert return_block_enc == expected_enc, f"Error: Encrypted block [{to_hex(return_block_enc)}] did not match expected value [{to_hex(expected_enc)}]."
     
-    # Switch to decryption mode
-    await switch_dec(dut)
-    
     # Decrypt the return value
-    await transmit_init_sequence(dut, init_vec, key, return_block_enc)
+    await tb.init_decryption(init_vec, key, return_block_enc)
+    await tb.start_decryption()
 
     # Receive the plaintext
-    return_block_dec = await receive_block(dut)
+    return_block_dec = await tb.get_plaintext()
     assert return_block_dec == plaintext, f"Error: Decrypted block [{to_hex(return_block_dec)}] did not match expected value [{to_hex(plaintext)}]."
 
     await sync(dut, 10)
 
-# @cocotb.test()
+@cocotb.test(timeout_time=10000, timeout_unit='ns')
 async def test_3(dut):
     """
     Tests multiple rounds of AES-128 enc/dec.
@@ -113,23 +115,25 @@ async def test_3(dut):
     iv  = random.randint(0,ONES_128)
     key = random.randint(0,ONES_128)
     data = "This data is not for prying eyes!"
-    # Pad the plaintext to be a multiple of the AES block size (16 bytes)
     raw_data = data.encode('utf-8')
     padded_plaintext = pad(raw_data, AES.block_size)
     exp_enc_bytes = encrypt_string(iv, key, padded_plaintext)
-
     # Create clock
     clock = Clock(dut.clk, 8, units="ns")
     cocotb.start_soon(clock.start())
+    tb = TB(dut)
 
     # Reset
-    await reset(dut)
+    await tb.reset()
 
-    encoded_bytes = await dut_encode_bytes(dut, iv, key, padded_plaintext)
-    assert encoded_bytes == exp_enc_bytes, "Encrypted bytes did not match expected value."
+    plaintext, encoded_bytes = await tb.dut_encode(iv, key, data)
+    # exp_enc_bytes = encrypt_string(iv, key, plaintext)
 
-    decoded_bytes = await dut_decode_bytes(dut, iv, key, encoded_bytes)
-    assert decoded_bytes == raw_data, "Decrypted bytes did not match expected value."
+    assert encoded_bytes == exp_enc_bytes, \
+        f"Encrypted bytes did not match expected value.\nExpected:{exp_enc_bytes}\n Actual:{encoded_bytes}"
+
+    _, decoded_bytes = await tb.dut_decode(iv, key, encoded_bytes)
+    assert decoded_bytes == plaintext, "Decrypted bytes did not match expected value."
 
     await sync(dut, 1)
 
@@ -163,7 +167,7 @@ def test_aes_128_top_wrapper_simple_runner():
     build_arg_im = (f'-wlf {proj_path}/tests/test.wlf')
     
     build_args = []
-    test_args = []
+    test_args = ['-no_autoacc', "-voptargs=+acc=rnb"] # Don't optimize away signals
     
     runner = get_runner(sim)
     print(sources)

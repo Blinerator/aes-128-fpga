@@ -21,7 +21,8 @@ port
     crypt_output_valid : in std_logic;
 
     -- Output
-    key_valid          : out std_logic;       
+    key_valid          : out std_logic;
+    iv_valid           : out std_logic;       
     start_crypt        : out std_logic;
     done               : out std_logic  
 );
@@ -36,10 +37,12 @@ begin
         if rising_edge(clk) then
             if reset = '1' then
                 control_state <= idle;
+                done <= '0';
             else
                 -- Clear pulsed signals
-                key_valid <= '0';
+                key_valid   <= '0';
                 start_crypt <= '0';
+                iv_valid    <= '0';
                 
                 -- Controller FSM
                 case control_state is
@@ -47,6 +50,7 @@ begin
                     when initial_setup => 
                         if expansion_done = '1' then
                             start_crypt <= '1'; -- Pulsed
+                            iv_valid    <= '1'; -- Pulsed
                             control_state <= do_crypt;
                         end if;
                     
@@ -61,6 +65,7 @@ begin
                     when wait_for_in_data =>
                         if start = '1' then
                             done <= '0';
+                            start_crypt <= '1';
                             control_state <= do_crypt;
                         end if;
 
