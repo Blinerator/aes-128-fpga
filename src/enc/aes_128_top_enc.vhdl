@@ -1,3 +1,4 @@
+-- © 2025 Ilya Cable <ilya.cable1@gmail.com>
 library ieee;
 use ieee.std_logic_1164.all;
 use work.aes_pkg.all;
@@ -68,7 +69,7 @@ begin
                 end if;
 
                 if input_valid = '1' then
-                    if xor_init_vec = '1' then
+                    if xor_init_vec = '1' or init_vec_valid = '1' then
                         -- this will override the previous cipherblock
                         s_box_bus_in <= input_bus xor init_vec xor e_key(0); -- xor with initial vector
                         xor_init_vec_done <= '1'; -- Pulsed

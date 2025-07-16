@@ -1,3 +1,4 @@
+-- © 2025 Ilya Cable <ilya.cable1@gmail.com>
 library ieee;
 use ieee.std_logic_1164.all;
 use work.aes_pkg.all; -- exp_key_type, s_box_word, rot_word, R_CON
@@ -68,10 +69,3 @@ begin
     e_key <= e_key_i; -- Assign output
 
 end architecture rtl;
-
-
-
-
-
-
-
