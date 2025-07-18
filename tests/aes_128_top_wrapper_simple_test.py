@@ -141,23 +141,23 @@ def test_aes_128_top_wrapper_simple_runner():
     src = "aes_128_top_wrapper_simple"
     sim = os.getenv("SIM", "questa")
 
-    aes_pkg_path    = proj_path/"src"/"common"/"aes_pkg.vhdl"
-    key_exp_path    = proj_path/"src"/"common"/"key_expansion.vhdl"
-    control_fsm_path = proj_path/"src"/"common"/"control_fsm.vhdl"
+    aes_pkg_path    = proj_path/"src"/"common"/"aes_pkg.vhd"
+    key_exp_path    = proj_path/"src"/"common"/"key_expansion.vhd"
+    control_fsm_path = proj_path/"src"/"common"/"control_fsm.vhd"
 
-    top_enc_path    = proj_path/"src"/"enc"/"aes_128_top_enc.vhdl"
-    mix_cols_path   = proj_path/"src"/"enc"/"mix_columns.vhdl"
-    s_box_path      = proj_path/"src"/"enc"/"s_box.vhdl"
-    shift_rows_path = proj_path/"src"/"enc"/"shift_rows.vhdl"
-    enc_wrapper_path = proj_path/"src"/"wrappers"/"enc_wrapper.vhdl"
+    top_enc_path    = proj_path/"src"/"enc"/"aes_128_top_enc.vhd"
+    mix_cols_path   = proj_path/"src"/"enc"/"mix_columns.vhd"
+    s_box_path      = proj_path/"src"/"enc"/"s_box.vhd"
+    shift_rows_path = proj_path/"src"/"enc"/"shift_rows.vhd"
+    enc_wrapper_path = proj_path/"src"/"wrappers"/"enc_wrapper.vhd"
 
-    top_dec_path  = proj_path/"src"/"dec"/"aes_128_top_dec.vhdl"
-    inv_mix_cols_path = proj_path/"src"/"dec"/"inv_mix_columns.vhdl"
-    inv_s_box_path = proj_path/"src"/"dec"/"inv_s_box.vhdl"
-    inv_shift_rows_path = proj_path/"src"/"dec"/"inv_shift_rows.vhdl"
-    dec_wrapper_path = proj_path/"src"/"wrappers"/"dec_wrapper.vhdl"
+    top_dec_path  = proj_path/"src"/"dec"/"aes_128_top_dec.vhd"
+    inv_mix_cols_path = proj_path/"src"/"dec"/"inv_mix_columns.vhd"
+    inv_s_box_path = proj_path/"src"/"dec"/"inv_s_box.vhd"
+    inv_shift_rows_path = proj_path/"src"/"dec"/"inv_shift_rows.vhd"
+    dec_wrapper_path = proj_path/"src"/"wrappers"/"dec_wrapper.vhd"
     
-    top_wrapper_path = proj_path/"src"/f"{src}.vhdl"
+    top_wrapper_path = proj_path/"src"/f"{src}.vhd"
 
     sources = [aes_pkg_path, key_exp_path, control_fsm_path, mix_cols_path,
                s_box_path, shift_rows_path, top_enc_path, enc_wrapper_path,
