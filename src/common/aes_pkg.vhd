@@ -1,7 +1,7 @@
 -- © 2025 Ilya Cable <ilya.cable1@gmail.com>
 library ieee;
 use ieee.std_logic_1164.all;
-use IEEE.numeric_std_unsigned.all;
+use ieee.numeric_std.all;
 
 package aes_pkg is
 
@@ -84,8 +84,8 @@ package body aes_pkg is
 
     function s_box_byte(byte : std_logic_vector(7 downto 0)) return std_logic_vector is
     begin
-        return  S_BOX(to_integer(byte(7 downto 4)))( to_integer(127 - byte(3 downto 0)*8) 
-                      downto to_integer(120 - byte(3 downto 0)*8)  );
+        return  S_BOX(to_integer(unsigned(byte(7 downto 4))))(127 - to_integer(unsigned(byte(3 downto 0)))*8
+                      downto 120 - to_integer(unsigned(byte(3 downto 0)))*8);
     end s_box_byte;
 
     function s_box_word(word : std_logic_vector(31 downto 0)) return std_logic_vector is
@@ -96,8 +96,8 @@ package body aes_pkg is
     
     function inv_s_box_byte(byte : std_logic_vector(7 downto 0)) return std_logic_vector is
     begin
-        return  INV_S_BOX(to_integer(byte(7 downto 4)))( to_integer(127 - byte(3 downto 0)*8) 
-                      downto to_integer(120 - byte(3 downto 0)*8)  );
+        return  INV_S_BOX(to_integer(unsigned(byte(7 downto 4))))(127 - to_integer(unsigned(byte(3 downto 0)))*8
+                      downto 120 - to_integer(unsigned(byte(3 downto 0)))*8);
     end inv_s_box_byte;
 
     function mul_g2(byte : std_logic_vector(7 downto 0)) return std_logic_vector is
