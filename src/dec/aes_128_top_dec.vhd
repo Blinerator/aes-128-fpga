@@ -4,6 +4,10 @@ use ieee.std_logic_1164.all;
 use work.aes_pkg.all;
 
 entity aes_128_top_dec is
+generic
+(
+    SBOX_ARCHITECTURE : string -- LOOKUP, COMB, MASKED
+);
 port 
 (
     -- Common
@@ -131,23 +135,52 @@ begin
         output_en    => shift_rows_bus_out_valid  --out std_logic
     );
 
-    inv_s_box_inst : entity work.inv_s_box(rtl)
-    generic map
-    (
-        BUS_WIDTH => 16
-    )
-    port map
-    (
-        -- Common
-        clk         => clk,                  -- in std_logic;
-        reset       => reset,                -- in std_logic;
-        -- Input
-        input_bus   => shift_rows_bus_out,         -- in std_logic_vector(BUS_WIDTH*8-1 downto 0);
-        input_en    => shift_rows_bus_out_valid,   -- in std_logic;
-        -- Output
-        output_bus  => s_box_bus_out,        -- out std_logic_vector(BUS_WIDTH*8-1 downto 0);
-        output_en   => s_box_bus_out_valid   -- out std_logic
-    );
+    -- Conditional inverse S-box architecture instantiation
+    inv_sbox_lookup_gen : if SBOX_ARCHITECTURE = "LOOKUP" generate
+        inv_s_box_inst : entity work.inv_s_box(lookup)
+        generic map
+        (
+            BUS_WIDTH => 16
+        )
+        port map
+        (
+            -- Common
+            clk         => clk,                  -- in std_logic;
+            reset       => reset,                -- in std_logic;
+            -- Input
+            input_bus   => shift_rows_bus_out,         -- in std_logic_vector(BUS_WIDTH*8-1 downto 0);
+            input_en    => shift_rows_bus_out_valid,   -- in std_logic;
+            -- Output
+            output_bus  => s_box_bus_out,        -- out std_logic_vector(BUS_WIDTH*8-1 downto 0);
+            output_en   => s_box_bus_out_valid   -- out std_logic
+        );
+    end generate inv_sbox_lookup_gen;
+    
+    inv_sbox_comb_gen : if SBOX_ARCHITECTURE = "COMB" generate
+        inv_s_box_inst : entity work.inv_s_box(combinational)
+        generic map
+        (
+            BUS_WIDTH => 16
+        )
+        port map
+        (
+            -- Common
+            clk         => clk,                  -- in std_logic;
+            reset       => reset,                -- in std_logic;
+            -- Input
+            input_bus   => shift_rows_bus_out,         -- in std_logic_vector(BUS_WIDTH*8-1 downto 0);
+            input_en    => shift_rows_bus_out_valid,   -- in std_logic;
+            -- Output
+            output_bus  => s_box_bus_out,        -- out std_logic_vector(BUS_WIDTH*8-1 downto 0);
+            output_en   => s_box_bus_out_valid   -- out std_logic
+        );
+    end generate inv_sbox_comb_gen;
+    
+    -- Future: masked inverse S-box architecture
+    -- inv_sbox_masked_gen : if SBOX_ARCHITECTURE = "MASKED" generate
+    --     inv_s_box_inst : entity work.inv_s_box(masked)
+    --     ...
+    -- end generate inv_sbox_masked_gen;
 
 
 

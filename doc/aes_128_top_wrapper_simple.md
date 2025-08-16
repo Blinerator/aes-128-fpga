@@ -4,7 +4,14 @@
 
 # External Interface
 
-**Table 1: Port Map**
+**Table 1: Generic Parameters**
+
+| Name              | Type   | Default  | Description 
+|-------------------|--------|----------|------------
+| MODE              | string | -        | Operating mode: <br/>"ENC" - Only the encryption interface will be active. <br/> "DEC" - Only the decryption interface will be active. <br/> "ENC_DEC" - Both the encryption and decryption interfaces will be active. 
+| SBOX_ARCHITECTURE | string | "LOOKUP" | S-box implementation: <br/> "LOOKUP" - The S-Box uses a look-up table approach where the multiplicative inverse + affine transformation is stored in ROM (registers). 1 clock cycle latency. <br/> "COMB" - The S-Box and affine transformations are implemented combinationally, with four internal pipeline stages. 4 clock cycle latency. <br/> "MASKED" (FUTURE) - Uses a hybrid masked approach. At each session end (and at reset/power on), the masked S-Box will be calculated and written to BRAM (this process takes ~64 clock cycles). Once this process is done, operates with a 1 clock cycle latency. This method eliminates pipeline delays from fully combinational masked approaches, but requires a longer time to initialize. The new mask is generated at each session end to take advantage of any delays between session stop/start to perform the lengthy RAM initialization.
+
+**Table 2: Port Map**
 
 | Name           | Width | Direction | Description 
 |----------------|-------|-----------|------------

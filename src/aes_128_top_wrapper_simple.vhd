@@ -1,9 +1,9 @@
 ---------------------------------------------------------------------
--- © 2025 Ilya Cable <ilya.cable1@gmail.com>
+-- © 2025 Ilya Cable <ilya.cable1@gmail.COMB>
 --
 -- Description: An implementation of AES exposing enc/dec signals directly
 --              on the port map. Intended to be hooked up to registers externally
---              and used with neorv32 (https://github.com/stnolting/neorv32) as a 
+--              and used with neorv32 (https://github.COMB/stnolting/neorv32) as a 
 --              custom hardware module in neorv32_cfs.vhd.
 ---------------------------------------------------------------------
 library ieee;
@@ -12,7 +12,8 @@ use work.aes_pkg.all;
 entity aes_128_top_wrapper_simple is
 generic
 (
-    MODE : string -- ENC, DEC, ENC_DEC
+    MODE : string; -- ENC, DEC, ENC_DEC
+    SBOX_ARCHITECTURE : string := "LOOKUP" -- LOOKUP, COMB, MASKED
 );
 port 
 (
@@ -43,8 +44,15 @@ begin
     assert MODE = "ENC" or MODE = "DEC" or MODE = "ENC_DEC" 
         report "Error: MODE setting was invalid" severity failure;
     
+    assert SBOX_ARCHITECTURE = "LOOKUP" or SBOX_ARCHITECTURE = "COMB" or SBOX_ARCHITECTURE = "MASKED"
+        report "Error: SBOX_ARCHITECTURE setting was invalid" severity failure;
+    
     mode_gen_1 : if MODE = "ENC" or MODE = "ENC_DEC" generate
         enc_inst : entity work.enc_wrapper(rtl)
+        generic map
+        (
+            SBOX_ARCHITECTURE => SBOX_ARCHITECTURE
+        )
         port map
         (
             clk         => clk,
@@ -60,6 +68,10 @@ begin
     end generate mode_gen_1;
     mode_gen_2 : if MODE = "DEC" or MODE = "ENC_DEC" generate
         dec_inst : entity work.dec_wrapper(rtl)
+        generic map
+        (
+            SBOX_ARCHITECTURE => SBOX_ARCHITECTURE
+        )
         port map
         (
             clk         => clk,

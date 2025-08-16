@@ -8,6 +8,10 @@ use ieee.std_logic_1164.all;
 use work.aes_pkg.all;
 
 entity enc_wrapper is
+generic
+(
+    SBOX_ARCHITECTURE : string -- LOOKUP, COMB, MASKED
+);
 port 
 (
     clk       : in std_logic;
@@ -64,6 +68,10 @@ begin
     );
 
     encryption_core : entity work.aes_128_top_enc(rtl)
+    generic map
+    (
+        SBOX_ARCHITECTURE => SBOX_ARCHITECTURE
+    )
     port map
     (
         -- Common
