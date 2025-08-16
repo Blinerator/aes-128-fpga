@@ -178,7 +178,7 @@ def test_aes_128_top_wrapper_simple_runner():
         test_module=f"{src}_test", 
         test_args=test_args,
         waves = True,
-        parameters = {"MODE" : "ENC_DEC"}
+        parameters = {"MODE" : "ENC_DEC", "SBOX_ARCHITECTURE" : "COMB"},
     )
 
 if __name__ == "__main__":

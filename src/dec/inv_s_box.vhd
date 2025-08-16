@@ -71,8 +71,7 @@ begin
         -- 4-stage pipeline delay for output_en to match total latency
         input_en_d <= input_en;
         input_en_dd <= input_en_d;
-        input_en_ddd <= input_en_dd;
-        output_en <= input_en_ddd;
+        output_en <= input_en_dd;
     end if;
 end process;
 
@@ -86,15 +85,8 @@ gen_sbox : for i in 1 to BUS_WIDTH generate
             input  => mult_inv_inputs(i),
             output => mult_inv_outputs(i)
         );
-    
-    inv_proc : process(clk)
-    begin
-        if rising_edge(clk) then
-            if input_en = '1' then
-                output_bus(i*8-1 downto i*8-8) <= mult_inv_outputs(i);
-            end if;
-        end if;
-    end process;
+
+    output_bus(i*8-1 downto i*8-8) <= mult_inv_outputs(i);
 end generate gen_sbox;
 
 end architecture combinational;

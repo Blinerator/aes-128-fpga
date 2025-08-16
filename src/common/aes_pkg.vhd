@@ -162,8 +162,8 @@ package body aes_pkg is
         temp2 := gf2_mul(q_low, w_low);
         temp3 := gf2_mul(q_high xor q_low, w_high xor w_low);
         
-        k(3 downto 2) := gf2_mul_phi(temp1) xor temp2;
-        k(1 downto 0)  := temp2 xor temp3;
+        k(1 downto 0) := gf2_mul_phi(temp1) xor temp2;
+        k(3 downto 2)  := temp2 xor temp3;
         
         return k;
     end gf4_mul;
@@ -209,28 +209,28 @@ package body aes_pkg is
     function affine_transform(q : std_logic_vector(7 downto 0)) return std_logic_vector is
         variable k : std_logic_vector(7 downto 0);
     begin
-        k(7) := q(4) xor q(3) xor q(2) xor q(1) xor q(0);
-        k(6) := q(5) xor q(4) xor q(3) xor q(2) xor q(1) xor '1';
-        k(5) := q(6) xor q(5) xor q(4) xor q(3) xor q(2) xor '1';
-        k(4) := q(7) xor q(6) xor q(5) xor q(4) xor q(3);
-        k(3) := q(7) xor q(6) xor q(5) xor q(4) xor q(0);
-        k(2) := q(7) xor q(6) xor q(5) xor q(1) xor q(0);
-        k(1) := q(7) xor q(6) xor q(2) xor q(1) xor q(0) xor '1';
-        k(0) := q(7) xor q(3) xor q(2) xor q(1) xor q(0) xor '1';
+        k(7) := q(7) xor q(6) xor q(5) xor q(4) xor q(3);
+        k(6) := q(6) xor q(5) xor q(4) xor q(3) xor q(2) xor '1';
+        k(5) := q(5) xor q(4) xor q(3) xor q(2) xor q(1) xor '1';
+        k(4) := q(4) xor q(3) xor q(2) xor q(1) xor q(0);
+        k(3) := q(7) xor q(3) xor q(2) xor q(1) xor q(0);
+        k(2) := q(7) xor q(6) xor q(2) xor q(1) xor q(0);
+        k(1) := q(7) xor q(6) xor q(5) xor q(1) xor q(0) xor '1';
+        k(0) := q(7) xor q(6) xor q(5) xor q(4) xor q(0) xor '1';
         return k;
     end affine_transform;
 
     function inv_affine_transform(q : std_logic_vector(7 downto 0)) return std_logic_vector is
         variable k : std_logic_vector(7 downto 0);
     begin
-        k(7) := q(6) xor q(3) xor q(1);
-        k(6) := q(7) xor q(4) xor q(2);
-        k(5) := q(5) xor q(3) xor q(0);
-        k(4) := q(6) xor q(4) xor q(1);
-        k(3) := q(7) xor q(5) xor q(2);
-        k(2) := q(6) xor q(3) xor q(0) xor '1';
-        k(1) := q(7) xor q(4) xor q(1);
-        k(0) := q(5) xor q(2) xor q(0) xor '1';
+        k(7) := q(6) xor q(4) xor q(1);
+        k(6) := q(5) xor q(3) xor q(0);
+        k(5) := q(7) xor q(4) xor q(2);
+        k(4) := q(6) xor q(3) xor q(1);
+        k(3) := q(5) xor q(2) xor q(0);
+        k(2) := q(7) xor q(4) xor q(1) xor '1';
+        k(1) := q(6) xor q(3) xor q(0);
+        k(0) := q(7) xor q(5) xor q(2) xor '1';
         return k;
     end inv_affine_transform;
 
