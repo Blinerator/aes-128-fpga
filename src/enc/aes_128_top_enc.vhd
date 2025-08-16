@@ -167,7 +167,8 @@ begin
     -- sbox_masked_gen : if SBOX_ARCHITECTURE = "MASKED" generate
     --     s_box_inst : entity work.s_box(masked)
     --     ...
-    -- end generate sbox_masked_gen;    shift_rows_inst : entity work.shift_rows(rtl)
+    -- end generate sbox_masked_gen;
+    shift_rows_inst : entity work.shift_rows(rtl)
     port map
     (
         -- Common
