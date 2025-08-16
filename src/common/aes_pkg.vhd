@@ -55,6 +55,28 @@ package aes_pkg is
     );
 
     -- Function Declarations:
+    -- Function to add two elements in GF(2^4) (bitwise XOR)
+    function gf4_add(q1 : std_logic_vector(3 downto 0); q2 : std_logic_vector(3 downto 0)) return std_logic_vector;
+    -- Function to square an element in GF(2^4)
+    function gf4_square(q : std_logic_vector(3 downto 0)) return std_logic_vector;
+    -- Function to multiply by constant Lambda (1100) in GF(2^4)
+    function gf4_mul_lambda(q : std_logic_vector(3 downto 0)) return std_logic_vector;
+    -- Function to multiply by constant Phi in GF(2^2)
+    function gf2_mul_phi(q : std_logic_vector(1 downto 0)) return std_logic_vector;
+    -- Function to multiply two elements in GF(2^2)
+    function gf2_mul(q : std_logic_vector(1 downto 0); w : std_logic_vector(1 downto 0)) return std_logic_vector;
+    -- Function to multiply two elements in GF(2^4)
+    function gf4_mul(q : std_logic_vector(3 downto 0); w : std_logic_vector(3 downto 0)) return std_logic_vector;
+    -- Function to compute multiplicative inverse in GF(2^4)
+    function gf4_inv(q : std_logic_vector(3 downto 0)) return std_logic_vector;
+    -- Function for isomorphic mapping from GF(2^8) to composite fields
+    function isomorphic_map_gf8(q : std_logic_vector(7 downto 0)) return std_logic_vector;
+    -- Function for inverse isomorphic mapping from composite fields back to GF(2^8)
+    function inv_isomorphic_map_gf8(q_m : std_logic_vector(7 downto 0)) return std_logic_vector;
+    -- Function for AES affine transformation (used in S-box after multiplicative inverse)
+    function affine_transform(q : std_logic_vector(7 downto 0)) return std_logic_vector;
+    -- Function for inverse AES affine transformation (used in inverse S-box before multiplicative inverse)
+    function inv_affine_transform(q : std_logic_vector(7 downto 0)) return std_logic_vector;
     -- Function to obtain multiplicative inverse in G(2^8) via S-Box
     function s_box_byte(byte : std_logic_vector(7 downto 0)) return std_logic_vector;
     -- Same as prev. but for word
@@ -73,7 +95,7 @@ package aes_pkg is
     function mul_g13(byte : std_logic_vector(7 downto 0)) return std_logic_vector;
     -- Function to multiply a byte by 0xE in Galois Field 2^8
     function mul_g14(byte : std_logic_vector(7 downto 0)) return std_logic_vector;
-    -- Function to rotate four bytes (a word) left by one byte (a.k.a. 8x rotate left)
+    -- Function to rotate four bytes (a word) left €by one byte (a.k.a. 8x rotate left)
     function rot_word(word : std_logic_vector(31 downto 0)) return std_logic_vector;
     -- Checks index against a LUT
     function is_leftmost(index : integer) return std_logic;
@@ -81,6 +103,136 @@ package aes_pkg is
 end package aes_pkg;
 
 package body aes_pkg is
+
+    function gf4_add(q1 : std_logic_vector(3 downto 0); q2 : std_logic_vector(3 downto 0)) return std_logic_vector is
+        variable k : std_logic_vector(3 downto 0);
+    begin
+        k := q1 xor q2;
+        return k;
+    end gf4_add;
+
+    function gf4_square(q : std_logic_vector(3 downto 0)) return std_logic_vector is
+        variable k : std_logic_vector(3 downto 0);
+    begin
+        k(3) := q(3);                           -- K3 = Q3
+        k(2) := q(3) xor q(2);                  -- K2 = Q3 XOR Q2
+        k(1) := q(2) xor q(1);                  -- K1 = Q2 XOR Q1
+        k(0) := q(3) xor q(1) xor q(0);         -- K0 = Q3 XOR Q1 XOR Q0
+        return k;
+    end gf4_square;
+
+    function gf4_mul_lambda(q : std_logic_vector(3 downto 0)) return std_logic_vector is
+        variable k : std_logic_vector(3 downto 0);
+    begin
+        k(3) := q(2) xor q(0);                  -- K3 = Q2 XOR Q0
+        k(2) := q(3) xor q(2) xor q(1) xor q(0); -- K2 = Q3 XOR Q2 XOR Q1 XOR Q0
+        k(1) := q(3);                           -- K1 = Q3
+        k(0) := q(2);                           -- K0 = Q2
+        return k;
+    end gf4_mul_lambda;
+
+    function gf2_mul_phi(q : std_logic_vector(1 downto 0)) return std_logic_vector is
+        variable k : std_logic_vector(1 downto 0);
+    begin
+        k(1) := q(1) xor q(0);                  -- K1 = Q1 XOR Q0
+        k(0) := q(1);                           -- K0 = Q1
+        return k;
+    end gf2_mul_phi;
+
+    function gf2_mul(q : std_logic_vector(1 downto 0); w : std_logic_vector(1 downto 0)) return std_logic_vector is
+        variable k : std_logic_vector(1 downto 0);
+    begin
+        k(1) := (q(1) and w(1)) xor (q(0) and w(1)) xor (q(1) and w(0)); -- K1 = Q1·W1 XOR Q0·W1 XOR Q1·W0
+        k(0) := (q(1) and w(1)) xor (q(0) and w(0));                     -- K0 = Q1·W1 XOR Q0·W0
+        return k;
+    end gf2_mul;
+
+    function gf4_mul(q : std_logic_vector(3 downto 0); w : std_logic_vector(3 downto 0)) return std_logic_vector is
+        variable k : std_logic_vector(3 downto 0);
+        variable q_high, q_low : std_logic_vector(1 downto 0);
+        variable w_high, w_low : std_logic_vector(1 downto 0);
+        variable temp1, temp2, temp3 : std_logic_vector(1 downto 0);
+    begin
+        q_high := q(3 downto 2);
+        q_low  := q(1 downto 0);
+        w_high := w(3 downto 2);
+        w_low  := w(1 downto 0);
+        
+        temp1 := gf2_mul(q_high, w_high);
+        temp2 := gf2_mul(q_low, w_low);
+        temp3 := gf2_mul(q_high xor q_low, w_high xor w_low);
+        
+        k(3 downto 2) := gf2_mul_phi(temp1) xor temp2;
+        k(1 downto 0)  := temp2 xor temp3;
+        
+        return k;
+    end gf4_mul;
+
+    function gf4_inv(q : std_logic_vector(3 downto 0)) return std_logic_vector is
+        variable k : std_logic_vector(3 downto 0);
+    begin
+        k(3) := q(3) xor (q(3) and q(2) and q(1)) xor (q(3) and q(0)) xor q(2);
+        k(2) := (q(3) and q(2) and q(1)) xor (q(3) and q(2) and q(0)) xor (q(3) and q(0)) xor q(2) xor (q(2) and q(1));
+        k(1) := q(3) xor (q(3) and q(2) and q(1)) xor (q(3) and q(1) and q(0)) xor q(2) xor (q(2) and q(0)) xor q(1);
+        k(0) := (q(3) and q(2) and q(1)) xor (q(3) and q(2) and q(0)) xor (q(3) and q(1)) xor (q(3) and q(1) and q(0)) xor (q(3) and q(0)) xor q(2) xor (q(2) and q(1)) xor (q(2) and q(1) and q(0)) xor q(1) xor q(0);
+        return k;
+    end gf4_inv;
+
+    function isomorphic_map_gf8(q : std_logic_vector(7 downto 0)) return std_logic_vector is
+        variable q_m : std_logic_vector(7 downto 0);
+    begin
+        q_m(7) := q(7) xor q(5);
+        q_m(6) := q(7) xor q(6) xor q(4) xor q(3) xor q(2) xor q(1);
+        q_m(5) := q(7) xor q(5) xor q(3) xor q(2);
+        q_m(4) := q(7) xor q(5) xor q(3) xor q(2) xor q(1);
+        q_m(3) := q(7) xor q(6) xor q(2) xor q(1);
+        q_m(2) := q(7) xor q(4) xor q(3) xor q(2) xor q(1);
+        q_m(1) := q(6) xor q(4) xor q(1);
+        q_m(0) := q(6) xor q(1) xor q(0);
+        return q_m;
+    end isomorphic_map_gf8;
+
+    function inv_isomorphic_map_gf8(q_m : std_logic_vector(7 downto 0)) return std_logic_vector is
+        variable q : std_logic_vector(7 downto 0);
+    begin
+        q(7) := q_m(7) xor q_m(6) xor q_m(5) xor q_m(1);
+        q(6) := q_m(6) xor q_m(2);
+        q(5) := q_m(6) xor q_m(5) xor q_m(1);
+        q(4) := q_m(6) xor q_m(5) xor q_m(4) xor q_m(2) xor q_m(1);
+        q(3) := q_m(5) xor q_m(4) xor q_m(3) xor q_m(2) xor q_m(1);
+        q(2) := q_m(7) xor q_m(4) xor q_m(3) xor q_m(2) xor q_m(1);
+        q(1) := q_m(5) xor q_m(4);
+        q(0) := q_m(6) xor q_m(5) xor q_m(4) xor q_m(2) xor q_m(0);
+        return q;
+    end inv_isomorphic_map_gf8;
+
+    function affine_transform(q : std_logic_vector(7 downto 0)) return std_logic_vector is
+        variable k : std_logic_vector(7 downto 0);
+    begin
+        k(7) := q(4) xor q(3) xor q(2) xor q(1) xor q(0);
+        k(6) := q(5) xor q(4) xor q(3) xor q(2) xor q(1) xor '1';
+        k(5) := q(6) xor q(5) xor q(4) xor q(3) xor q(2) xor '1';
+        k(4) := q(7) xor q(6) xor q(5) xor q(4) xor q(3);
+        k(3) := q(7) xor q(6) xor q(5) xor q(4) xor q(0);
+        k(2) := q(7) xor q(6) xor q(5) xor q(1) xor q(0);
+        k(1) := q(7) xor q(6) xor q(2) xor q(1) xor q(0) xor '1';
+        k(0) := q(7) xor q(3) xor q(2) xor q(1) xor q(0) xor '1';
+        return k;
+    end affine_transform;
+
+    function inv_affine_transform(q : std_logic_vector(7 downto 0)) return std_logic_vector is
+        variable k : std_logic_vector(7 downto 0);
+    begin
+        k(7) := q(6) xor q(3) xor q(1);
+        k(6) := q(7) xor q(4) xor q(2);
+        k(5) := q(5) xor q(3) xor q(0);
+        k(4) := q(6) xor q(4) xor q(1);
+        k(3) := q(7) xor q(5) xor q(2);
+        k(2) := q(6) xor q(3) xor q(0) xor '1';
+        k(1) := q(7) xor q(4) xor q(1);
+        k(0) := q(5) xor q(2) xor q(0) xor '1';
+        return k;
+    end inv_affine_transform;
 
     function s_box_byte(byte : std_logic_vector(7 downto 0)) return std_logic_vector is
     begin

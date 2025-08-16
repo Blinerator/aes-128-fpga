@@ -51,5 +51,19 @@ def decrypt_string(iv : int, key : int, block: str, ) -> bytes:
 async def sync(dut, ccs):
     for _ in range(ccs): await RisingEdge(dut.clk)
 
+from Crypto.Util.Padding import pad
+ZEROES_128 = 0x00000000000000000000000000000000
+ONES_128   = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+import random
+iv  = random.randint(0,ONES_128)
+key = random.randint(0,ONES_128)
+data = "This data is not for prying eyes!"
+raw_data = data.encode('utf-8')
+padded_plaintext = pad(raw_data, AES.block_size)
+exp_enc_bytes = encrypt_string(iv, key, padded_plaintext)
 
-
+print(f"IV: {to_hex(iv)}")
+print(f"Key: {to_hex(key)}")
+print(f"Data: {data}")
+print(f"Padded plaintext: {padded_plaintext.hex()}")
+print(f"Expected encrypted bytes: {exp_enc_bytes.hex()}")
